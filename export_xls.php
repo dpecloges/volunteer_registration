@@ -2,9 +2,7 @@
 header('Cache-Control: no-cache, must-revalidate');
 require("lib/lib.php");
 
-
 if($_GET['key']!=My_XLS_Export_Key) die('Permission Denied');
-
 $con = opendb();
 $sql = "SELECT * FROM vreg_volunteers ORDER BY ID";
 $result = mysqli_query($con, $sql);
@@ -15,7 +13,7 @@ echo
 <table><tbody>
 <td>ID</td>
 <td>Εγγραφή</td>
-<td>Ειδ.εκλ.αρ.</td>
+<td>#&nbsp;&nbsp;Ειδ.εκλ.αρ.</td>
 <td>Όνομα</td>
 <td>Επώνυμο</td>
 <td>Ετ. Γεν.</td>
@@ -58,7 +56,7 @@ while($row = mysqli_fetch_array($result)){
 	echo "<tr>";
 	echo "<td>" . $row['ID_Number']  . "</td>";
 	echo "<td>" . Date('j/n/Y', strtotime($row['RegDateTime']))  . "</td>";
-	echo "<td>" . $row['EidEklAr']  . "</td>";
+	echo "<td>#&nbsp;&nbsp;" . $row['EidEklAr']  . "</td>";
 	echo "<td>" . $row['FName']  . "</td>";
 	echo "<td>" . $row['LName']  . "</td>";
 	echo "<td>" . $row['BirthYear']  . "</td>";

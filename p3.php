@@ -289,6 +289,7 @@ $(document).ready(function() {
 	    dataSource: <?php echo $jobsAS ?>,
 	    fields: ['job'],
 	    id: 'id',
+	    maxShow: 10,
 	    format: '%job%',
 	    multiple: true,
 	    multiField: 'job',

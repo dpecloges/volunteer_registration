@@ -60,48 +60,6 @@ if($YPESdata['NumRows']==0){
 	die(json_encode($data));	
 }
 
-/*
-		
-$p1 = mb_strpos($html, '<td class="t">Όνομα :</td>');		
-$FName = mb_substr($html, $p1 + 46);		
-$p2 = mb_strpos($FName, '</td>');			
-$FName = mb_substr($FName, 0, $p2);
-
-$p1 = mb_strpos($html, '<td class="t">Όνομα Πατέρα :</td>');		
-$PName = mb_substr($html, $p1 + 53);		
-$p2 = mb_strpos($PName, '</td>');			
-$PName = mb_substr($PName, 0, $p2);
-
-$p1 = mb_strpos($html, '<td class="t">Όνομα Μητέρας :</td>');		
-$MName = mb_substr($html, $p1 + 54);		
-$p2 = mb_strpos($MName, '</td>');			
-$MName = mb_substr($MName, 0, $p2);
-
-		YPES_voters.Eid_ekl_ar,
-		YPES_voters.Fylo,
-		YPES_voters.Onoma,
-		YPES_voters.Onoma_b,
-		YPES_voters.Eponymo,
-		YPES_voters.Eponymo_b,
-		YPES_voters.mer_gen,
-		YPES_voters.mhn_gen,
-		YPES_voters.etos_gen,
-		YPES_voters.on_pat,
-		YPES_voters.epon_pat,
-		YPES_voters.on_mht,
-		YPES_voters.Tax_kod,
-		YPES_voters.dhmot,
-		YPES_DHMOTIKES_ENOTITES.ONOMA Dimotiki_Enotita,
-		YPES_DHMOTIKES_ENOTITES.PERIFER,
-		YPES_DHMOTIKES_ENOTITES.NOMOS,
-		YPES_DHMOTIKES_ENOTITES.EKL_PERIF,
-		YPES_DHMOI.ONOMA Dimos
-
-
-
-*/
-
-
 $EidEklAr = $YPESdata['Eid_ekl_ar'];
 $FName = $YPESdata['Onoma'];
 $LName = $YPESdata['Eponymo']; 
@@ -129,56 +87,56 @@ $_SESSION['EidEklAr'] = $EidEklAr;
 $html = "
 
 	<div class='row'>
-		<div class='col-sm-3'>Ειδικός Εκλογικός Αριθμός : </div>
-		<div class='col-sm-9'><b>$EidEklAr</b></div>
+		<div class='col-sm-4'>Ειδικός Εκλογικός Αριθμός : </div>
+		<div class='col-sm-8'><b>$EidEklAr</b></div>
 	</div>
 	<div class='row'>&nbsp;</div>
 
 
 	<div class='row'>
-		<div class='col-sm-3'>Αριθμός Δημοτολογίου : </div>
-		<div class='col-sm-9'><b>$dhmot</b></div>
+		<div class='col-sm-4'>Αριθμός Δημοτολογίου : </div>
+		<div class='col-sm-8'><b>$dhmot</b></div>
 	</div>
 	<div class='row'>&nbsp;</div>
 	<div class='row'>
-		<div class='col-sm-3'>Όνομα Πατέρα  : </div>
-		<div class='col-sm-9'><b>$PName</b></div>
+		<div class='col-sm-4'>Όνομα Πατέρα  : </div>
+		<div class='col-sm-8'><b>$PName</b></div>
 	</div>
 	<div class='row'>
-		<div class='col-sm-3'>Όνομα Μητέρας  : </div>
-		<div class='col-sm-9'><b>$MName</b></div>
-	</div>
-	<div class='row'>&nbsp;</div>
-
-
-
-	<div class='row'>
-		<div class='col-sm-3'>Δήμος : </div>
-		<div class='col-sm-9'><b>$Dimos</b></div>
-	</div>
-	<div class='row'>
-		<div class='col-sm-3'>Δημοτική Ενότητα : </div>
-		<div class='col-sm-9'><b>$DimEn</b></div>
+		<div class='col-sm-4'>Όνομα Μητέρας  : </div>
+		<div class='col-sm-8'><b>$MName</b></div>
 	</div>
 	<div class='row'>&nbsp;</div>
 
 
+
 	<div class='row'>
-		<div class='col-sm-3'>Εκλογική περιφέρεια : </div>
-		<div class='col-sm-9'><b>$Eklog</b></div>
+		<div class='col-sm-4'>Δήμος : </div>
+		<div class='col-sm-8'><b>$Dimos</b></div>
+	</div>
+	<div class='row'>
+		<div class='col-sm-4'>Δημοτική Ενότητα : </div>
+		<div class='col-sm-8'><b>$DimEn</b></div>
+	</div>
+	<div class='row'>&nbsp;</div>
+
+
+	<div class='row'>
+		<div class='col-sm-4'>Εκλογική περιφέρεια : </div>
+		<div class='col-sm-8'><b>$Eklog</b></div>
 	</div>
 	<div class='row'>&nbsp;</div>
 	<div class='row'>
-		<div class='col-sm-3'>Περιφερειακή Ενότητα : </div>
-		<div class='col-sm-9'><b>$PerEn</b></div>
+		<div class='col-sm-4'>Περιφερειακή Ενότητα : </div>
+		<div class='col-sm-8'><b>$PerEn</b></div>
 	</div>
 	<div class='row'>
-		<div class='col-sm-3'>Περιφέρεια : </div>
-		<div class='col-sm-9'><b>$Perif</b></div>
+		<div class='col-sm-4'>Περιφέρεια : </div>
+		<div class='col-sm-8'><b>$Perif</b></div>
 	</div>
 	<div class='row'>
-		<div class='col-sm-3'>Νομός : </div>
-		<div class='col-sm-9'><b>$Nomos</b></div>
+		<div class='col-sm-4'>Νομός : </div>
+		<div class='col-sm-8'><b>$Nomos</b></div>
 	</div>
 	<div class='row'>&nbsp;</div>	
 
