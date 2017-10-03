@@ -2,6 +2,9 @@
 header('Cache-Control: no-cache, must-revalidate');
 require("lib/lib.php");
 
+
+if($_GET['key']!=My_XLS_Export_Key) die('Permission Denied');
+
 $con = opendb();
 $sql = "SELECT * FROM vreg_volunteers ORDER BY ID";
 $result = mysqli_query($con, $sql);

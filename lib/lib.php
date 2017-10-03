@@ -75,6 +75,7 @@ function getEidEklArDataFromDB($FName, $LName, $PName, $BirthYear){
 	$row = mysqli_fetch_array($result);
 	$num_rows = mysqli_num_rows($result);
 	$row['NumRows'] = $num_rows;
+	mysqli_close($con);
 	return $row;
 }
 
@@ -148,12 +149,12 @@ function sendMail($email, $fullname, $subject, $body){
 function sendMailLocal($email, $fullname, $subject, $body){
 	$mail             = new PHPMailer();
 	$mail->CharSet = "UTF-8";
-	$mail->From       = ToPotami_Platform_Email;
-	$mail->FromName   = "Το Ποτάμι";
+	$mail->From       = My_Platform_Email;
+	$mail->FromName   = My_Platform_Email_Name;
 	$mail->Subject    = $subject;
 	$mail->AltBody    = "Δεν υποστηρίζεται!";
 	$mail->MsgHTML($body);
-	$mail->AddReplyTo(ToPotami_Admin_Email, "Το Ποτάμι");
+	$mail->AddReplyTo(My_Admin_Email, My_Platform_Email_Name);
 	$mail->AddAddress($email, $fullname);
 	$mail->IsHTML(true);
 	if(!$mail->Send()){
