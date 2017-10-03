@@ -7,12 +7,7 @@
 		//die('<h2>System Error!</h2>');
 	}
 		
-	$YYYY = '';
-	$y = date("Y") - 17;
-	for($i = $y; $i > 1900; $i--){
-		$YYYY .= "<option value='$i'>$i</option>";
-	}
-
+	session_start();
 	session_destroy();
 ?>
 
@@ -36,6 +31,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="assets/dist/js/formValidation.min.js"></script>
+    <script src="assets/dist/js/mandatoryIcon.min.js"></script>    
     <script src="assets/dist/js/framework/bootstrap.min.js"></script>
     <script src="assets/dist/js/language/el_GR.js"></script>
     <style type="text/css">    	
@@ -58,15 +54,15 @@
             <form onsubmit="return false;" id="RegistrationForm">
 
                 <div class="form-group">
-                    <input class="form-control" type="text" placeholder="* Όνομα" name="FName" id="FName" maxlength="30" />
+                    <input class="form-control" type="text" placeholder="Όνομα" name="FName" id="FName" maxlength="30" />
                 </div>
 
                 <div class="form-group">
-                    <input class="form-control" type="text" placeholder="* Επώνυμο" name="LName" id="LName" maxlength="30" />
+                    <input class="form-control" type="text" placeholder="Επώνυμο" name="LName" id="LName" maxlength="30" />
                 </div>
 
                 <div class="form-group">
-                    <input class="form-control" type="text" placeholder="* Πατρώνυμο" name="PName" id="PName" maxlength="30" />
+                    <input class="form-control" type="text" placeholder="Πατρώνυμο" name="PName" id="PName" maxlength="30" />
                 </div>
                 
                 <div class="well" style="height:500px!important">
@@ -77,10 +73,8 @@
                         <div class="col-sm-12">
                             <input type="hidden" id="EidEklArithm" />
                             <input type="hidden" id="MName" />
-							<span>Έτος γέννησης :</span>
-                            <select class="form-control display-inline-block" style="width:100px" id="BirthYear">
-                                <?php echo $YYYY ?>
-                            </select>&nbsp;&nbsp;
+							<input class="form-control display-inline-block" placeholder="Έτος γέννησης" type="text" name="BirthYear" id="BirthYear" maxlength="4" style="width:150px" />
+							&nbsp;&nbsp;
                             <button class="btn btn-primary-small" type="button" id="BtnFind" onclick="FindEidEklArithm();return false">Αναζήτηση</button>
                         </div>
                     </div>
@@ -94,7 +88,7 @@
                 </div>
 				   <div class="row">
 				    <div class="col-sm-6"><button class="btn btn-danger btn-block" onclick="ClearData();return false">Καθαρισμός φόρμας</button></div>
-				    <div class="col-sm-6"><button class="btn btn-success btn-block" onclick="submitData();return false">Επόμενο βήμα</button></div>
+				    <div class="col-sm-6"><button class="btn btn-success btn-block" id="BtnNext" onclick="submitData();return false">Επόμενο βήμα</button></div>
 				  </div>
             </form>
         </div>
@@ -168,7 +162,18 @@
 			vPName = $("#PName").val()			
 		}
 	};
-	
+
+	var vBirthYear = "";
+	$('#BirthYear')[0].oninput = function(){
+		var BirthYear = $("#BirthYear").val();
+		var b = isNormalIntegerDigits(BirthYear);
+		if(b){
+			vBirthYear = BirthYear;
+		}else{
+			$("#BirthYear").val(vBirthYear);
+		}
+	};
+		
 	function submitData(){		
 		$('#RegistrationForm').data('formValidation').validate();
 		var isValid = $('#RegistrationForm').data('formValidation').isValid();	
@@ -197,6 +202,8 @@
 		$("#PName").attr("disabled", false); 
 		$("#BirthYear").attr("disabled", false); 
 		$("#BtnFind").attr("disabled", false); 		
+		$("#BtnNext").attr("disabled", true);
+		$("#FName").focus();		
 	}
 
 	function FindEidEklArithm(){
@@ -213,7 +220,8 @@
 				$("#LName").attr("disabled", true); 
 				$("#PName").attr("disabled", true); 
 				$("#BirthYear").attr("disabled", true);
-				$("#BtnFind").attr("disabled", true);					
+				$("#BtnFind").attr("disabled", true);
+				$("#BtnNext").attr("disabled", false); 					
 				$('#FName').val(data.FName);						
 				$('#PName').val(data.PName);
 				$('#MName').val(data.MName);		
@@ -227,8 +235,9 @@
 		}, "json");
 	}
 
-	$(document).ready(function() {
-		BirthYear: $("#BirthYear").val('');
+	$(document).ready(function() {			
+		$("#BtnNext").attr("disabled", true);		
+		$("#FName").focus();
 	    $('#RegistrationForm')
 	     	.on('init.field.fv', function(e, data) {
 	            var $parent = data.element.parents('.form-group'),
@@ -242,12 +251,29 @@
 	        })    
 		    .formValidation({
 		        framework: 'bootstrap',
+			    addOns: {
+			        mandatoryIcon: {
+			            icon: 'glyphicon glyphicon-asterisk'
+			        }
+			    },	        
 		        icon: {
 		            valid: 'glyphicon glyphicon-ok',
 		            invalid: 'glyphicon glyphicon-remove',
 		            validating: 'glyphicon glyphicon-refresh'
 		        },
 		        fields: {		            
+		            BirthYear: {
+		                validators: {
+		                    notEmpty: {
+		                        message: 'Το πεδίο Έτος γέννησης είναι υποχρεωτικό!'
+		                    },
+		                    between: {
+	                            min: 1900,
+	                            max: 2005,
+	                            message: 'Παρακαλούμε εισάγετε έγκυρο έτος γέννησης!'
+	                        }
+		                }
+		            },            
 		            FName: {
 		                validators: {
 		                	callback: {
@@ -300,7 +326,7 @@
 		                }
 		            }
 		        }
-		    });
+		    });		
 	});
 
 
@@ -401,6 +427,21 @@
 	  }
 	  return sa ? s : s[0]
 	}
+
+
+
+	function isNormalIntegerDigits(str) {	
+		var n = true;
+		for (var i = 0, len = str.length; i < len; i++) {
+			n = n && isNormalInteger(str[i]);
+		}
+		return n;
+	}
+
+	function isNormalInteger(str) {
+		return /^\+?(0|[1-9]\d*)$/.test(str);
+	}
+
 
 
 </script>	

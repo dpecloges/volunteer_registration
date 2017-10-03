@@ -84,11 +84,11 @@
             		</div>
             	</div>         	
             	<br/><br/>            
-		        <input type="text" class="form-control" placeholder="* Διεύθυνση κατοικίας" id="Address" maxlength="100" />
+		        <input type="text" class="form-control" placeholder="* Διεύθυνση κατοικίας (μέσω Google Maps)" id="Address" maxlength="100" />
 		        <div class="row">		        	
 		        	<div class="col-sm-6">
 		        		<div class="checkbox">
-				  			<label><input type="checkbox" id="CustomAddress" onclick="CustomAddressClick()" value="">Θέλω να εισάγω μόνος μου την διεύθυνση. (Απαιτείται να γνωρίζετε τον ΤΚ)</label>
+				  			<label><input type="checkbox" id="CustomAddress" onclick="CustomAddressClick()" value="">Καταχώριση διεύθυνσης χωρίς Google Maps</label>
 		        		</div>
 					</div>
 		        	<div class="col-sm-6">
@@ -97,20 +97,23 @@
 						</div>
 				    </div>
 		        </div>
-				
+
+	
 				
 		        <br/>
 		        <div id="ErrorMsgAddress" class="alert alert-danger"></div>		        
             	<div class="row">
-            		<div class="form-group">
-            			<div class="col-sm-8"><input type="text" disabled="" class="form-control" id="StreetName" name="StreetName" placeholder="Οδός" style="background-color:#fffdf3" /></div>
-	            		<div class="col-sm-2"><input type="text" disabled="" class="form-control" id="StreetNumber" placeholder="Αριθμός" style="background-color:#fffdf3" /></div>	
-	            		<div class="col-sm-2"><input type="text" disabled="" class="form-control" id="zipCode" placeholder="Τ.Κ." style="background-color:#fffdf3" /></div>
+            		<div id="AddressDiv">
+	            		<div class="form-group">
+	            			<div class="col-sm-8"><input type="text" disabled="" class="form-control" id="StreetName" name="StreetName" placeholder="Οδός" style="background-color:#fffdf3" /></div>
+		            		<div class="col-sm-2"><input type="text" disabled="" class="form-control" id="StreetNumber" placeholder="Αριθμός" style="background-color:#fffdf3" /></div>	
+		            		<div class="col-sm-2"><input type="text" disabled="" class="form-control" id="zipCode" placeholder="Τ.Κ." style="background-color:#fffdf3" /></div>
+	            		</div>
             		</div>
             	</div> 
             	<br/>
             	<div class="row">
-            		<div class="col-sm-6"><input type="text" disabled="" class="form-control" id="Municipality" placeholder="Δήμος" style="background-color:#fffdf3" /></div>	
+            		<div class="col-sm-6" id="MunicipalityDiv"><input type="text" disabled="" class="form-control" id="Municipality" placeholder="Δήμος" style="background-color:#fffdf3" /></div>	
             		<div class="col-sm-6"><input type="text" disabled="" class="form-control" id="Division" placeholder="Νομός / Τομέας" style="background-color:#fffdf3" /></div>
 		        </div>
                 <br/><br/><br/><br/>
@@ -251,8 +254,7 @@
 
 
 <script>
-
-	  	
+	var vZipCode = "";	  	
 	var Autocomplete = null;
 	var map =  null;
 	var myAddress = new fullAddress();
@@ -262,8 +264,13 @@
 	function NoNumbersAddressClick(){
 		$('#ErrorMsgAddress').hide();
 		var StreetName = $("#StreetName").val();
-		var NoNumbersAddress = $(this.NoNumbersAddress).prop('checked');
-		var CustomAddress = $("#CustomAddress").prop('checked');	
+		var NoNumbersAddress = $("#NoNumbersAddress").prop('checked');
+		var CustomAddress = $("#CustomAddress").prop('checked');
+		if(CustomAddress){
+			bgcolor = NoNumbersAddress ? "#fffdf3": "#f7f9fc";	
+			$("#StreetNumber").attr("disabled", NoNumbersAddress).css("background-color", bgcolor);
+			$("#StreetNumber").val('');		
+		}		
 		if(StreetName=='' && NoNumbersAddress && myAddress.Locality!='' && !CustomAddress){
 			$("#StreetName").val(myAddress.Locality);
 			myAddress.StreetName = myAddress.Locality;
@@ -283,77 +290,14 @@
 			zip = zip.substr(0, 3) + ' ' + zip.substr(3, 2);
 		}
 		$("#zipCode").val(zip);
-		
-		$.getJSON('http://maps.googleapis.com/maps/api/geocode/json?language=el&address=GR' + zip).done(function(response){
-			var res = response.results[0];
-			address_components_exist = false;
-			$.each(res, function(index, val) {
-			    if(index=="address_components"){
-					address_components_exist = true;
-					address_components = response.results[0].address_components;
-				}
-			    if(index=="geometry"){
-					geometry = response.results[0].geometry;
-				}
-			});
-		    if (!address_components_exist || address_components==null){
-				myAddress.Locality = '';
-				myAddress.Municipality = '';
-				myAddress.Division = '';
-				myAddress.Country = '';
-				myAddress.IsValid = false;
-				$("#Municipality").val('');
-				$("#Division").val('');
-				return;
-			}
-		 	for (var i = 0; i < address_components.length; i++) {
-		      for (var j = 0; j < address_components[i].types.length; j++) {
-		      	//-------------------------------------------------------------
-		      	console.log('--->' + address_components[i].types[j]);	      	
-		      	console.log(address_components[i].long_name);
-		      	//-------------------------------------------------------------
-		        if (address_components[i].types[j] == "country") {
-		          	myAddress.Country = address_components[i].long_name;
-		        }
-		        if (address_components[i].types[j] == "locality" ||
-		        	address_components[i].types[j] == "administrative_area_level_4" ||
-		        	address_components[i].types[j] == "administrative_area_level_5"){	          
-		          	myAddress.Municipality = address_components[i].long_name;
-					$("#Municipality").val(myAddress.Municipality);
-		        }
-		        if (address_components[i].types[j] == "administrative_area_level_3" ||
-		        	address_components[i].types[j] == "administrative_area_level_4") {	          
-		          	myAddress.Division = address_components[i].long_name;
-					$("#Division").val(myAddress.Division);
-		        }
-		        if (address_components[i].types[j] == "locality"){	          
-		          	myAddress.Locality = address_components[i].long_name;
-		        }		        
-		      }
-		    }
-
-
-			if(myAddress.Country!="Ελλάδα"){
-				myAddress.Locality = '';
-				myAddress.Municipality = '';
-				myAddress.Division = '';
-				myAddress.Country = '';
-				myAddress.IsValid = false;
-				$("#Municipality").val('');
-				$("#Division").val('');
-				return;
-			}		        
-	        if (geometry!=null){
-			    var center = new google.maps.LatLng(geometry.location.lat, geometry.location.lng);
+		$.post('get_zip_data.php', {zipCode: $("#zipCode").val()}, function(data){
+			if(data.Error == 0){
+			    var center = new google.maps.LatLng(data.lat, data.lng);
 			    map.panTo(center);
 			    map.setZoom(15);
-	        }
-		});
-	}
-
-	$('#zipCode')[0].oninput = function(){
-		myAddress.Zip = $("#zipCode").val();
-		$('#ErrorMsgAddress').hide();
+			}			
+		}, "json");			
+		
 	}
 
 	$('#StreetName')[0].oninput = function(){
@@ -374,7 +318,9 @@
 		myAddress.Municipality = '';
 		myAddress.Division = '';
 		myAddress.Country = '';
+		vZipCode = '';
 		myAddress.IsValid = false;
+		$("#NoNumbersAddress").prop('checked', false);
 		$("#StreetName").val('');
 		$("#StreetNumber").val('');
 		$("#zipCode").val('');
@@ -382,14 +328,26 @@
 		$("#Division").val('');		
 		$('#ErrorMsgAddress').hide();
 		var CustomAddress = $("#CustomAddress").prop('checked');
-		bgcolor = CustomAddress ? "#f7f9fc": "#fffdf3";
+		bgcolor = CustomAddress ? "white": "#fffdf3";
 		$("#StreetName, #StreetNumber, #zipCode").attr("disabled", !CustomAddress).css("background-color", bgcolor);
-		bgcolor = CustomAddress ? "#fffdf3": "#f7f9fc";		
+		bgcolor = CustomAddress ? "#fffdf3": "white";		
 		$("#Address").attr("disabled", CustomAddress).css("background-color", bgcolor);
 		if(CustomAddress){
+			myAddress.Country = 'Ελλάδα';
 		 	$("#Address").val('');	
+		 	$("#Address").hide();
 			infowindowG.close();
 			markerG.setVisible(false);
+			$.post('municipalities_select.php', {}, function(data){
+				$("#MunicipalityDiv").html(data.MunicipalityDiv);
+				$("#AddressDiv").html(data.AddressDiv);
+				myAddress.oAddressDiv = data.AddressDiv;		
+			}, "json");
+		}else{			
+		 	$("#Address").show();
+			$("#StreetName").prop("placeholder", "Οδός");
+			$("#MunicipalityDiv").html('<input type="text" disabled="" class="form-control" id="Municipality" placeholder="Δήμος" style="background-color:#fffdf3" />');
+			$("#AddressDiv").html(myAddress.oAddressDiv);
 		}
 		
 	}
@@ -401,7 +359,8 @@
 		this.Municipality = '';
 		this.Division = '';
 		this.Country = '';
-		this.IsValid = false;
+		this.IsValid = false;		
+		this.oAddressDiv = '';
 	}
 
 	$('#Address')[0].oninput = function(){
@@ -442,6 +401,7 @@
 			var place = Autocomplete.getPlace();		
 			if (!place.geometry) return;
 			
+			var NoNumbersAddress = $("#NoNumbersAddress").prop('checked');
 		 	for (var i = 0; i < place.address_components.length; i++) {
 		      for (var j = 0; j < place.address_components[i].types.length; j++) {
 		      	//-------------------------------------------------------------
@@ -452,7 +412,7 @@
 		          	myAddress.StreetName = place.address_components[i].long_name;
 					$("#StreetName").val(myAddress.StreetName);
 		        }
-		        if (place.address_components[i].types[j] == "street_number") {	          
+		        if (!NoNumbersAddress && place.address_components[i].types[j] == "street_number") {	          
 		          	myAddress.StreetNumber = place.address_components[i].long_name;
 					$("#StreetNumber").val(myAddress.StreetNumber);
 		        }
@@ -498,8 +458,17 @@
 	  }
 	  
 	function AddressValidation(){		
-		var NoNumbersAddress = $(this.NoNumbersAddress).prop('checked');
-		var CustomAddress = $("#CustomAddress").prop('checked');
+		var NoNumbersAddress = $('#NoNumbersAddress').prop('checked');
+		var CustomAddress = $("#CustomAddress").prop('checked');		
+		if(CustomAddress){
+			myAddress.StreetName  = $("#StreetName").val();
+			myAddress.StreetNumber = NoNumbersAddress ? '': $("#StreetNumber").val();
+			myAddress.Zip = $("#zipCode").val();
+			myAddress.Municipality = $("#Municipality").val();
+			myAddress.Locality = $("#Area").val();
+			myAddress.Division = $("#Division").val();
+			myAddress.Country = 'Ελλάδα'
+		}
 		myAddress.IsValid =
 				myAddress.StreetName != '' && 
 				(myAddress.StreetNumber != '' || NoNumbersAddress) && 
@@ -512,7 +481,12 @@
 			$("#StreetName").val(myAddress.Locality);
 		}
 		if(!CustomAddress){
-			$('#Address').val(myAddress.StreetName + ' ' + myAddress.StreetNumber + ' ' + myAddress.Municipality + ', ' + myAddress.Zip + ', ' + myAddress.Country);
+			var vAddress = myAddress.StreetName;			
+			vAddress += NoNumbersAddress ? '': ' ' + myAddress.StreetNumber;	
+			vAddress += myAddress.Municipality== '' ? '': ', ' + myAddress.Municipality;
+			vAddress += myAddress.Zip== '' ? '': ', ' + myAddress.Zip;
+			vAddress += myAddress.Country== '' ? '': ', ' + myAddress.Country;
+			$('#Address').val(vAddress);
 		}
 		if(myAddress.IsValid){
 			$('#ErrorMsgAddress').hide();
@@ -643,12 +617,16 @@
 		
 	function submitData(){		
 		$('#RegistrationForm').data('formValidation').validate();
-		var isValid = AddressValidation();
+		var isValid = $('#RegistrationForm').data('formValidation').isValid();
 		if(!isValid) return;
-		var NoNumbersAddress = $(this.NoNumbersAddress).prop('checked') ? 1: 0;
-		$.post('u2.php', {StreetName: myAddress.StreetName, StreetNumber: myAddress.StreetNumber, Zip: myAddress.Zip,
-						  Municipality: myAddress.Municipality, Division: myAddress.Division, Country: myAddress.Country,
-						  NoNumbersAddress: NoNumbersAddress, FixedPhone: $('#FixedPhone').val()}, function(data){
+		isValid = AddressValidation();
+		if(!isValid) return;
+		var NoNumbersAddress = $('#NoNumbersAddress').prop('checked') ? 1: 0;
+		var CustomAddress = $('#CustomAddress').prop('checked') ? 1: 0;
+		
+		$.post('u2.php', {StreetName: myAddress.StreetName, StreetNumber: myAddress.StreetNumber, CustomAddress: CustomAddress, 
+						  Municipality: myAddress.Municipality, Division: myAddress.Division, Country: myAddress.Country, Zip: myAddress.Zip, 
+						  Locality: myAddress.Locality, NoNumbersAddress: NoNumbersAddress, FixedPhone: $('#FixedPhone').val()}, function(data){
 			if(data.Error == 0){
 				location.replace("p3.php?SID=" + data.SID);	
 			}else{
@@ -664,13 +642,10 @@
 
 	$(document).ready(function() {
 		$('#Email').focus();
-		$(this.NoNumbersAddress).prop('checked', false);
+		$('#NoNumbersAddress').prop('checked', false);
 		$("#CustomAddress").prop('checked', false);
 		
-		$( "#zipCode" ).focusout(function(){
-			zipCodefocusout();
-		});		
-		
+
 		
 		
 		$('#ErrorMsgAddress').hide();
@@ -757,20 +732,7 @@
 			$("#EmailPIN").val(vEmailPIN);
 		}
 	};
-
-	var vzipCode = "";
-	$('#zipCode')[0].oninput = function(){
-		$('#ErrorMsgAddress').hide();
-		var zipCode = $("#zipCode").val();
-		var b = isNormalIntegerDigits(zipCode);
-		if(b && zipCode.length<6){
-			vzipCode = zipCode;
-		}else{
-			$("#zipCode").val(vzipCode);
-		}
-	};
-
-
+	
 	function isNormalIntegerDigits(str) {	
 		var n = true;
 		for (var i = 0, len = str.length; i < len; i++) {
@@ -784,10 +746,57 @@
 	}
 
 
+	function str_replace (search, replace, subject, countObj) { 
+	  var i = 0
+	  var j = 0
+	  var temp = ''
+	  var repl = ''
+	  var sl = 0
+	  var fl = 0
+	  var f = [].concat(search)
+	  var r = [].concat(replace)
+	  var s = subject
+	  var ra = Object.prototype.toString.call(r) === '[object Array]'
+	  var sa = Object.prototype.toString.call(s) === '[object Array]'
+	  s = [].concat(s)
+	  var $global = (typeof window !== 'undefined' ? window : global)
+	  $global.$locutus = $global.$locutus || {}
+	  var $locutus = $global.$locutus
+	  $locutus.php = $locutus.php || {}
+	  if (typeof (search) === 'object' && typeof (replace) === 'string') {
+	    temp = replace
+	    replace = []
+	    for (i = 0; i < search.length; i += 1) {
+	      replace[i] = temp
+	    }
+	    temp = ''
+	    r = [].concat(replace)
+	    ra = Object.prototype.toString.call(r) === '[object Array]'
+	  }
+	  if (typeof countObj !== 'undefined') {
+	    countObj.value = 0
+	  }
+	  for (i = 0, sl = s.length; i < sl; i++) {
+	    if (s[i] === '') {
+	      continue
+	    }
+	    for (j = 0, fl = f.length; j < fl; j++) {
+	      temp = s[i] + ''
+	      repl = ra ? (r[j] !== undefined ? r[j] : '') : r[0]
+	      s[i] = (temp).split(f[j]).join(repl)
+	      if (typeof countObj !== 'undefined') {
+	        countObj.value += ((temp.split(f[j])).length - 1)
+	      }
+	    }
+	  }
+	  return sa ? s : s[0]
+	}
 
 </script>	
 
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD4F-S7Cwcm6oG5IU2B7uw6mDE1_5KFKwg&libraries=places&language=el&callback=initMap"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=<?php 
+																		echo My_Google_API_Key
+																	 ?>&libraries=places&language=el&callback=initMap"></script>
 
 </body>
 

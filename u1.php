@@ -5,7 +5,7 @@ header('Cache-Control: no-cache, must-revalidate');
 require("lib/lib.php");
 
 
-if($_SERVER['HTTP_REFERER']!='http://dpekloges.gr/apps/vreg/p1.php'){
+if($_SERVER['HTTP_REFERER']!='http://vregistration.dpekloges.gr/p1.php'){
 	$data['Error'] = 100;
 	$data['ErrorDescr'] = '<h2>System Error!</h2>';
 	die(json_encode($data));

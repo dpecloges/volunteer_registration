@@ -18,6 +18,7 @@ session_start();
 $con = openDB();
 $UID = $_SESSION['RegistrationUID'];
 $errcode = 0;
+$errdescr = '';
 if(empty($UID)){	
 	$data['Error'] = 500;
 	$data['ErrorDescr'] = 'Session timeout!';
@@ -34,6 +35,10 @@ $FName = mysqli_real_escape_string($con, $_SESSION['FName']);
 $LName = mysqli_real_escape_string($con, $_SESSION['LName']);
 $PName = mysqli_real_escape_string($con, $_SESSION['PName']);
 $MName = mysqli_real_escape_string($con, $_SESSION['MName']);
+$Area = $_SESSION['Area']=='' ? 'NULL': "'" . mysqli_real_escape_string($con, $_SESSION['Area']) . "'";
+
+
+
 $BirthYear = $_SESSION['BirthYear'];
 $EidEklAr  = $_SESSION['EidEklAr'];
 $Mobile = $_SESSION['Mobile'];
@@ -59,18 +64,37 @@ $Help1d = $_POST['Help1d'];
 $Help2 = $_POST['Help2'];
 $Help3 = $_POST['Help3'];
 $Help4 = $_POST['Help4'];
-$Job = mysqli_real_escape_string($con, $_POST['Job']);
+$myJobs =  $_POST['myJobs'];
 $MiscSkills = mysqli_real_escape_string($con, $_POST['MiscSkills']);
 
 
+	
+
 $sql = "INSERT INTO vreg_volunteers (UID, RegDateTime) VALUES ('$UID', NOW())";
 mysqli_query($con, $sql);
+
+/*
+$data['ErrorDescr'] = $sql;
+die(json_encode($data));
+*/
+
+
 $sql = "SELECT ID FROM vreg_volunteers WHERE UID = '$UID'";
 $result = mysqli_query($con, $sql);	
 $row = mysqli_fetch_array($result);
 $ID = $row['ID'];
 $ID_Number = $ID + 10000;
 $ID_Number = $ID_Number . luhn_generate($ID_Number);
+
+$sql = "SELECT Job FROM jobs WHERE ID IN($myJobs)";
+$result = mysqli_query($con, $sql);	
+$Jobs = '';
+while($row = mysqli_fetch_array($result)){
+	$Jobs .= $Jobs=='' ? '': ', ';
+	$Jobs .= $row['Job'];
+}
+
+$Job = mysqli_real_escape_string($con, $Jobs);
 
 $sql = "UPDATE vreg_volunteers SET 
 				ID_Number = $ID_Number,
@@ -86,6 +110,7 @@ $sql = "UPDATE vreg_volunteers SET
 				StreetNumber = '$StreetNumber',
 				Zip = '$Zip',
 				Municipality = '$Municipality',
+				Area = $Area,
 				Division = '$Division',
 				BirthYear = $BirthYear,
 				NoNumbersAddress = $NoNumbersAddress,
@@ -121,6 +146,13 @@ if(!mysqli_query($con, $sql)){
 }
 
 
+
+if($myJobs!=''){
+	$sql = "INSERT INTO vreg_volunteers_jobs SELECT $ID AS Volunteer, ID AS Job FROM jobs WHERE ID IN ($myJobs)";
+	mysqli_query($con, $sql);
+}
+	
+
 $h1 = $Help1==1 ? '<b>ΝΑΙ</b>': '<b>ΟΧΙ</b>';
 $h1a = $Help1a==1 ? '<b>ΝΑΙ</b>': '<b>ΟΧΙ</b>';
 $h1b = $Help1b==1 ? '<b>ΝΑΙ</b>': '<b>ΟΧΙ</b>';
@@ -152,17 +184,60 @@ $Body =
 
 Τα στοιχεία που μας έχεις δώσει είναι:
 <br/><br/><br/>
-<b>Ειδικός εκλογικός αριθμός : </b>$EidEklAr<br/>
-<b>Όνομα : </b>$FName<br/>
-<b>Επώνυμο : </b>$LName<br/>
-<b>Όνομα πατρός : </b>$PName<br/>
-<b>Όνομα μητρός : </b>$MName<br/>
-<b>Email : </b>$Email<br/>
-<b>Κινητό τηλέφωνο : </b>$Mobile<br/>
-<b>Σταθερό τηλέφωνο : </b>$FixedPhone<br/>
-<b>Διεύθυνση : </b>$StreetName $StreetNumber, $Municipality<br/>
-<b>Επάγγελμα : </b>$Job<br/><br/>
-<b>Άλλα ενδιαφέροντα : </b><br/>$MiscSkills<br/>
+
+<table>
+	<tr>
+		<td><b>Ειδικός εκλογικός αριθμός : </b></td>
+		<td>$EidEklAr</td>
+	</tr>
+	<tr>
+		<td><b>Όνομα : </b></td>
+		<td>$FName</td>
+	</tr>
+	<tr>
+		<td><b>Επώνυμο : </b></td>
+		<td>$LName</td>
+	</tr>
+	<tr>
+		<td><b>Όνομα πατρός : </b></td>
+		<td>$PName</td>
+	</tr>
+	<tr>
+		<td><b>Όνομα μητρός : </b></td>
+		<td>$MName</td>
+	</tr>
+	
+	<tr>
+		<td><b>Email : </b></td>
+		<td>$Email</td>
+	</tr>
+	<tr>
+		<td><b>Κινητό τηλέφωνο : </b></td>
+		<td>$Mobile</td>
+	</tr>
+	<tr>
+		<td><b>Σταθερό τηλέφωνο : </b></td>
+		<td>$FixedPhone</td>
+	</tr>
+	<tr>
+		<td><b>Διεύθυνση : </b></td>
+		<td>$StreetName $StreetNumber, $Municipality</td>
+	</tr>
+	<tr>
+		<td><b>Επάγγελμα : </b></td>
+		<td>$Job</td>
+	</tr>
+	<tr>
+		<td><b>Άλλα ενδιαφέροντα : </b></td>
+		<td>$MiscSkills</td>
+	</tr>
+</table>
+
+<br/><br/>
+<br/><br/>
+
+
+
 <h3>Οι απαντήσεις σου</h3>
 Είστε εξοικειωμένη/ος με τους Η/Υ; <b>$slider1/10</b><br/><br/>
 Είστε εξοικειωμένη/ος με τις οθόνες αφ$slider1ής; <b>$slider2/10</b><br/><br/>
@@ -195,13 +270,6 @@ $Fullname = $FName . ' ' . $LName;
 
 
 sendMail($Email, $Fullname, $Subject, $Body);
-
-
-
-
-
-
-
 
 
 

@@ -11,7 +11,16 @@
 		 //die('<h2>System Error!</h2>');	
 	}
 
-		
+	$con = openDB();
+	$sql = "SELECT * FROM jobs";
+	$result = mysqli_query($con, $sql);	
+	$jobsAS = '[';
+	while($row = mysqli_fetch_array($result)){
+		$i = $row['ID'];
+		$j = $row['Job'];
+		$jobsAS .= "{id: $i, job: '$j'},";
+	}
+	$jobsAS .= ']';
 ?>
 
 <!DOCTYPE html>
@@ -34,7 +43,14 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="assets/dist/js/formValidation.min.js"></script>
     <script src="assets/dist/js/framework/bootstrap.min.js"></script>
-    <script src="assets/dist/js/language/el_GR.js"></script>    
+    <script src="assets/dist/js/language/el_GR.js"></script>
+    
+  
+	<link href="css/jquery.magicsearch.min.css" rel="stylesheet">
+	<script src="js/jquery.magicsearch.min.js"></script> 
+    
+    
+    
     <style type="text/css">
     	.register-photo {
 			padding: 0px!important;
@@ -164,9 +180,8 @@
 				<div class="checkbox">
 					<label><input type="checkbox" id="Help4" value="">Την συμμετοχή σε δράσεις γύρω από θέματα που αφορούν την πόλη μου ή/και την εργασία μου</label>
 				</div>
-
                 <div class="form-group">
-                    <input class="form-control" type="text" placeholder="Επάγγελμα" name="Job" id="Job" maxlength="250" />
+                    <input class="form-control magicsearch" type="text" placeholder="Επάγγελμα" name="Job" id="Job" maxlength="250" />
                 </div>
                 <div class="form-group">
                 	<textarea class="form-control" style="height:80px" placeholder="Άλλα ενδιαφέροντα" id="MiscSkills"></textarea>
@@ -218,7 +233,8 @@
 
 
 <script>
- 
+
+var myJobs = '';
 
 function submitData(){
 	var Help1 = $("#Help1").prop('checked') ? 1: 0;
@@ -228,14 +244,15 @@ function submitData(){
 	var Help1d = $("#Help1d").prop('checked') ? 1: 0;
 	var Help2 = $("#Help2").prop('checked') ? 1: 0;
 	var Help3 = $("#Help3").prop('checked') ? 1: 0;
-	var Help4 = $("#Help4").prop('checked') ? 1: 0;		
+	var Help4 = $("#Help4").prop('checked') ? 1: 0;
+	
 	$.post('u3.php', {Help1: Help1, Help1a: Help1a, Help1b: Help1b,
 					  Help1b: Help1b, Help1c: Help1c, Help1d: Help1d, 
-					  Help2: Help2, Help3: Help3, Help4: Help4,
+					  Help2: Help2, Help3: Help3, Help4: Help4, myJobs: myJobs,
 					  slider1: $("#slider1").val(), slider2: $("#slider2").val(), 
 					  slider3: $("#slider3").val(), slider4: $("#slider4").val(), 
 					  slider5: $("#slider5").val(), slider6: $("#slider6").val(),
-					  Job: $("#Job").val(), MiscSkills: $("#MiscSkills").val()
+					  MiscSkills: $("#MiscSkills").val()
 					}, function(data){
 		if(data.Error == 0){
 			location.replace("p4.php?ID_Number=" + data.ID_Number);	
@@ -258,6 +275,7 @@ function help1click(){
 		$("#Help1d").prop('checked', false);
 	}
 }  
+
 	
 function ResetData(){
 	location.replace("p1.php");
@@ -265,6 +283,26 @@ function ResetData(){
 
 //------------- sliders.js -------------//
 $(document).ready(function() {
+
+
+	$('#Job').magicsearch({
+	    dataSource: <?php echo $jobsAS ?>,
+	    fields: ['job'],
+	    id: 'id',
+	    format: '%job%',
+	    multiple: true,
+	    multiField: 'job',
+	    multiStyle: {
+	        space: 5,
+	        width: 200
+	    }, 
+	    success: function($input, data) {
+        	myJobs = $input.attr('data-id');
+    	},
+    	afterDelete: function($input, data) {
+		    myJobs = $input.attr('data-id');
+		}    
+	});
     $('#RegistrationForm')
      	.on('init.field.fv', function(e, data) {
             var $parent = data.element.parents('.form-group'),

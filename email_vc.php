@@ -13,7 +13,6 @@ if($_SERVER['HTTP_REFERER']!=$referer){
 	//die(json_encode($data));
 }
 
-
 if($_SESSION['Email_PIN']!=$_POST['PIN']){
 	$_SESSION['Email_PIN_Validated'] = FALSE;
 	$data['Error'] = 101;
@@ -25,7 +24,7 @@ if($_SESSION['Email_PIN']!=$_POST['PIN']){
 $_SESSION['Email_PIN_Validated'] = TRUE;
 $errcode = 0;
 
-mysql_close($con);
+mysqli_close($con);
 $data['Error'] = $errcode;
 $data['ErrorDescr'] = $errdescr;
 echo json_encode($data);

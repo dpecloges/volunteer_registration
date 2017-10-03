@@ -13,6 +13,7 @@ if($_SERVER['HTTP_REFERER']!=$referer){
 	$data['ErrorDescr'] = '<h2>System Error!</h2>';
 	//die(json_encode($data));
 }
+
 $errcode = 0;
 $con = openDB();
 $Email = strtolower(trim($_POST['Email']));

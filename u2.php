@@ -13,13 +13,15 @@ if($_SERVER['HTTP_REFERER']!=$referer){
 	//die(json_encode($data));
 }
 
-$AddressStreetName = $_POST['StreetName'];
-$AddressStreetNumber = $_POST['StreetNumber'];
+$AddressStreetName = trim($_POST['StreetName']);
+$AddressStreetNumber = trim($_POST['StreetNumber']);
+$Locality = trim($_POST['Locality']);
 $Municipality = $_POST['Municipality'];
-$AddressZip = $_POST['Zip'];
+$AddressZip = trim($_POST['Zip']);
 $Division = $_POST['Division'];
 $AddressCountry = $_POST['Country'];
 $NoNumbersAddress = $_POST['NoNumbersAddress']==1;
+$CustomAddresss = $_POST['CustomAddress']==1;
 $FixedPhone = $_POST['FixedPhone'];
 $AddressIsValid =
 		!empty($AddressStreetName) && 
@@ -38,6 +40,27 @@ if($_SESSION['Email_PIN_Validated']!==TRUE){
 	$errcode = 103;
 	$errdescr = "Η διεύθυνση δεν είναι έγκυρη!";
 }else{
+	
+	
+	if($CustomAddresss){
+		$_SESSION['Area'] = $Locality;
+		$con = openDB();
+		$sql = "SELECT
+					GeoPC_GR_Regions2.`name` AS Municipality, GeoPC_GR_Regions.`name` AS Division
+				FROM
+					YPES_DHMOI
+					INNER JOIN Geo_YPES_divisions_relation ON YPES_DHMOI.kod_per_enotita = Geo_YPES_divisions_relation.kod_per_enotita
+					INNER JOIN GeoPC_GR_Regions ON Geo_YPES_divisions_relation.GID = GeoPC_GR_Regions.ID
+					INNER JOIN Geo_YPES_municipalities_relation ON YPES_DHMOI.KOD_DHM = Geo_YPES_municipalities_relation.KOD_DHM
+					INNER JOIN GeoPC_GR_Regions GeoPC_GR_Regions2 ON Geo_YPES_municipalities_relation.GID = GeoPC_GR_Regions2.ID
+				WHERE
+					YPES_DHMOI.KOD_DHM = '$Municipality'";
+		$result = mysqli_query($con, $sql);	
+		$row = mysqli_fetch_array($result);
+		$Municipality = $row['Municipality'];
+		$Division = $row['Division'];
+	}
+	
 	$_SESSION['RegistrationSID'] = uniqid();
 	$_SESSION['StreetName'] = $AddressStreetName;
 	$_SESSION['StreetNumber'] = $AddressStreetNumber;
@@ -47,7 +70,7 @@ if($_SESSION['Email_PIN_Validated']!==TRUE){
 	$_SESSION['FixedPhone'] = $FixedPhone;
 	$_SESSION['NoNumbersAddress'] = $NoNumbersAddress;	
 	$errcode = 0;
-	$errdescr = '';
+	$errdescr = '';	
 }
 
 $data['SID'] = $_SESSION['RegistrationSID'];

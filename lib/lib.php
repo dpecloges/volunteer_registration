@@ -68,6 +68,16 @@ function getEidEklArData($eid_ekl_ar, $LName){
 		   substr($data, $p1, $p2 - $p1) . '</table>';
 }
 
+function getEidEklArDataFromDB($FName, $LName, $PName, $BirthYear){
+	$con = openDemeterDB();	
+	$sql = "CALL Find_Voter_Data('$FName','$LName','$PName', $BirthYear)";
+	$result = mysqli_query($con, $sql);	
+	$row = mysqli_fetch_array($result);
+	$num_rows = mysqli_num_rows($result);
+	$row['NumRows'] = $num_rows;
+	return $row;
+}
+
 function luhn_generate($s){
 	$s=$s.'0';
 	$sum=0;
@@ -285,6 +295,15 @@ function openDB(){
 }
 
 
+function openDemeterDB(){	
+	$conn = mysqli_connect(Demeter_Database_Host,Demeter_Database_User, Demeter_Database_Password, Demeter_Database_Name);
+	if (!$conn) {
+		$data['ErrorDescr'] =  mysqli_connect_error();
+		die(json_encode($data));
+	}
+	mysqli_query($conn, "SET CHARACTER SET 'utf8'");		
+	return $conn;
+}
 
 function getip(){
 	if(validip($_SERVER["HTTP_CLIENT_IP"])){
