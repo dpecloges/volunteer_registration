@@ -310,6 +310,43 @@
 		$('#ErrorMsgAddress').hide();
 	}
 	
+	$('#Address')[0].oninput = function(){
+		$("#StreetName").val('');
+		$("#StreetNumber").val('');
+		$("#zipCode").val('');
+		$("#Municipality").val('');
+		$("#Division").val('');
+		myAddress.StreetName = '';
+		myAddress.StreetNumber = '';
+		myAddress.Zip = '';
+		myAddress.Municipality = '';
+		myAddress.Division = '';
+		myAddress.Country = '';	
+		myAddress.Locality = '';	
+	};
+	
+	$('#Mobile')[0].oninput = function(){
+		RemoveCharactersThatAreNotNumbers($('#Mobile'));
+	};
+
+	$('#FixedPhone')[0].oninput = function(){
+		RemoveCharactersThatAreNotNumbers($('#FixedPhone'));
+	};
+
+	$('#MobilePIN')[0].oninput = function(){
+		RemoveCharactersThatAreNotNumbers($('#MobilePIN'));
+	};
+
+	$('#EmailPIN')[0].oninput = function(){
+		RemoveCharactersThatAreNotNumbers($('#EmailPIN'));
+	};
+
+	function RemoveCharactersThatAreNotNumbers(textInput){
+		var str = textInput.val();
+		str = str.replace(/[^0-9]/gi,'');	
+		textInput.val(str);	
+	}
+	
 	function CustomAddressClick(){
 		myAddress.Locality = '';
 		myAddress.StreetName = '';
@@ -362,21 +399,6 @@
 		this.IsValid = false;		
 		this.oAddressDiv = '';
 	}
-
-	$('#Address')[0].oninput = function(){
-		$("#StreetName").val('');
-		$("#StreetNumber").val('');
-		$("#zipCode").val('');
-		$("#Municipality").val('');
-		$("#Division").val('');
-		myAddress.StreetName = '';
-		myAddress.StreetNumber = '';
-		myAddress.Zip = '';
-		myAddress.Municipality = '';
-		myAddress.Division = '';
-		myAddress.Country = '';	
-		myAddress.Locality = '';	
-	};
 
 
 	  function initMap(){
@@ -705,8 +727,6 @@
 		    });
 	});
 
-
-
 	function FixedPhoneValidator(FixedPhone){
 		if(FixedPhone=='') return true;
 		var s = FixedPhone.length;
@@ -719,30 +739,6 @@
 		var s = Mobile.length;
 		var b = Mobile.substr(0, 2);
 		return ((s==10) && (b=='69')); 	
-	}
-
-	
-	var vEmailPIN = "";
-	$('#EmailPIN')[0].oninput = function(){
-		var EmailPIN = $("#EmailPIN").val();
-		var b = isNormalIntegerDigits(EmailPIN);
-		if(b){
-			vEmailPIN = EmailPIN;
-		}else{
-			$("#EmailPIN").val(vEmailPIN);
-		}
-	};
-	
-	function isNormalIntegerDigits(str) {	
-		var n = true;
-		for (var i = 0, len = str.length; i < len; i++) {
-			n = n && isNormalInteger(str[i]);
-		}
-		return n;
-	}
-
-	function isNormalInteger(str) {
-		return /^\+?(0|[1-9]\d*)$/.test(str);
 	}
 
 

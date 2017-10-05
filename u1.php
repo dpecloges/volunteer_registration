@@ -4,13 +4,13 @@ header('Content-type: application/json');
 header('Cache-Control: no-cache, must-revalidate');
 require("lib/lib.php");
 
-
+/*
 if($_SERVER['HTTP_REFERER']!='http://vregistration.dpekloges.gr/p1.php'){
 	$data['Error'] = 100;
 	$data['ErrorDescr'] = '<h2>System Error!</h2>';
 	die(json_encode($data));
 }
-
+*/
 session_start();
 $con = openDB();
 $_SESSION['RegistrationUID'] = uniqid();
@@ -35,14 +35,7 @@ if(empty($EidEklArithm)){
 	$errdescr = '';
 }
 
-/*
-mysqli_query($con, $sql);
-$ID = mysqli_insert_id($con);
-*/
-
 mysqli_close($con);
-
-
 $data['SID'] = $_SESSION['RegistrationSID'];
 $data['Error'] = $errcode;
 $data['ErrorDescr'] = $errdescr;

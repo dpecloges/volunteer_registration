@@ -65,6 +65,11 @@
                     <input class="form-control" type="text" placeholder="Πατρώνυμο" name="PName" id="PName" maxlength="30" />
                 </div>
                 
+
+                <div class="form-group">
+                    <input class="form-control" type="text" placeholder="Mητρώνυμο " name="MName" id="MName" maxlength="30" />
+                </div>
+                
                 <div class="well" style="height:500px!important">
                     <span>* Ειδικός Εκλογικός Αριθμός <b>(Μάθε που ψηφίζεις)</b></span>
                     <br />
@@ -132,6 +137,7 @@
 
 
 <script>
+/*
 	var	vFName = "";
 	var	vLName = "";
 	var	vPName = "";
@@ -173,7 +179,7 @@
 			$("#BirthYear").val(vBirthYear);
 		}
 	};
-		
+*/		
 	function submitData(){		
 		$('#RegistrationForm').data('formValidation').validate();
 		var isValid = $('#RegistrationForm').data('formValidation').isValid();	
@@ -211,8 +217,8 @@
 		var isValid = $('#RegistrationForm').data('formValidation').isValid();	
 		if(!isValid) return;		
 		$.post('eideklarithm.php', {FName: $("#FName").val(), LName: $("#LName").val(), 
-								   PName: $("#PName").val(), BirthYear: $("#BirthYear").val()
-								  }, function(data){
+								    PName: $("#PName").val(), MName: $("#MName").val(), 
+								    BirthYear: $("#BirthYear").val()}, function(data){
 			if(data.Error == 0){
 				$('#EidEklArithmHtml').html(data.html);
 				$('#EidEklArithm').val(data.EidEklAr);
@@ -236,7 +242,8 @@
 	}
 
 	$(document).ready(function() {			
-		$("#BtnNext").attr("disabled", true);		
+		$("#BtnNext").attr("disabled", true);
+		InitializeTextInputEvents();	
 		$("#FName").focus();
 	    $('#RegistrationForm')
 	     	.on('init.field.fv', function(e, data) {
@@ -286,8 +293,8 @@
 		                        message: 'Το πεδίο Όνομα είναι υποχρεωτικό!'
 		                    },
 		                    stringLength: {
-		                        min: 3,
-		                        message: 'Παρακαλούμε εισάγετε έγκυρο Όνομα! (τουλάχιστον 3 χαρακτήρες)'
+		                        min: 4,
+		                        message: 'Παρακαλούμε εισάγετε έγκυρο Όνομα! (τουλάχιστον 4 χαρακτήρες)'
 		                    }
 		                }
 		            },
@@ -303,12 +310,12 @@
 		                        message: 'Το πεδίο Επώνυμο είναι υποχρεωτικό!'
 		                    },
 		                    stringLength: {
-		                        min: 3,
-		                        message: 'Παρακαλούμε εισάγετε έγκυρο Επώνυμο! (τουλάχιστον 3 χαρακτήρες)'
+		                        min: 4,
+		                        message: 'Παρακαλούμε εισάγετε έγκυρο Επώνυμο! (τουλάχιστον 4 χαρακτήρες)'
 		                    }
 		                }
 		            },
-		            PName: {
+		            PName: { 
 		                validators: {
 		                	callback: {
 		                        message: 'Error!',
@@ -320,8 +327,25 @@
 		                        message: 'Το πεδίο Πατρώνυμο είναι υποχρεωτικό!'
 		                    },
 		                    stringLength: {
-		                        min: 3,
-		                        message: 'Παρακαλούμε εισάγετε έγκυρο Πατρώνυμο! (τουλάχιστον 3 χαρακτήρες)'
+		                        min: 4,
+		                        message: 'Παρακαλούμε εισάγετε έγκυρο Πατρώνυμο! (τουλάχιστον 4 χαρακτήρες)'
+		                    }
+		                }
+		            },
+		            MName: { 
+		                validators: {
+		                	callback: {
+		                        message: 'Error!',
+		                        callback: function(value, validator, $field) {
+		                        	return NameValidator(value, $field);
+		                        }
+		                    },
+		                    notEmpty: {
+		                        message: 'Το πεδίο Mητρώνυμο είναι υποχρεωτικό!'
+		                    },
+		                    stringLength: {
+		                        min: 4,
+		                        message: 'Παρακαλούμε εισάγετε έγκυρο Mητρώνυμο! (τουλάχιστον 4 χαρακτήρες)'
 		                    }
 		                }
 		            }
@@ -441,6 +465,116 @@
 	function isNormalInteger(str) {
 		return /^\+?(0|[1-9]\d*)$/.test(str);
 	}
+
+
+	
+	function InitializeTextInputEvents()
+	{
+		$('#FName')[0].oninput = function(){
+			FixTextInputCharacters(	$('#FName'));
+     	};
+		
+		$('#LName')[0].oninput = function(){
+			FixTextInputCharacters(	$('#LName'));
+		};
+	
+		$('#FName')[0].oninput = function(){
+			FixTextInputCharacters(	$('#FName'));
+		};
+		
+		$('#MName')[0].oninput = function(){
+			FixTextInputCharacters(	$('#MName'));
+		};
+
+		
+		$('#BirthYear')[0].oninput = function(){
+			RemoveCharactersThatAreNotNumbers($('#BirthYear'));
+		};
+
+	}
+	
+	
+	// Removes space characters and turns letters to greek capital
+	function FixTextInputCharacters(textInput)
+	{
+		var s = textInput.val();
+		s = s.includes(" ") ? s.replace(" ","") : s;
+		s = s.toUpperCase();
+		s = ConvertStringToUppercaseGreek(s);
+		s = RemoveCharactersThatAreNotCapitalGreek(s);
+		textInput.val(s);	
+	}
+	
+	function ConvertStringToUppercaseGreek(str)
+	{
+		str = str.toUpperCase();
+		var upperEnglish = ['A', 'B', 'G', 'D', 'E', 'Z', 'H', 'U', 'I', 'K', 'L', 'M', 'N', 'J', 'O', 'P', 'R', 'S', 'T', 'Y', 'F', 'X', 'C', 'V', 'Y', 'Z', 'W'];
+		var upperGreek =   ['Α', 'Β', 'Γ', 'Δ', 'Ε', 'Ζ', 'Η', 'Θ', 'Ι', 'Κ', 'Λ', 'Μ', 'Ν', 'Ξ', 'Ο', 'Π', 'Ρ', 'Σ', 'Τ', 'Υ', 'Φ', 'Χ', 'Ψ', 'Ω', 'Υ', 'Ζ', 'Σ'];
+		var str = ArrayCharactersReplace (upperEnglish , upperGreek , str);
+		return str;
+	}
+	
+	function RemoveCharactersThatAreNotNumbers(textInput)
+	{
+		var str = textInput.val();
+		str = str.replace(/[^0-9]/gi,'');	
+		textInput.val(str);	
+	}
+	
+	function RemoveCharactersThatAreNotCapitalGreek(str)
+	{
+		str = str.replace(/[^Α-Ω]/gi,'');	
+		return str;		
+	}
+
+		
+	function ArrayCharactersReplace (search, replace, subject, countObj) { 
+	  var i = 0
+	  var j = 0
+	  var temp = ''
+	  var repl = ''
+	  var sl = 0
+	  var fl = 0
+	  var f = [].concat(search)
+	  var r = [].concat(replace)
+	  var s = subject
+	  var ra = Object.prototype.toString.call(r) === '[object Array]'
+	  var sa = Object.prototype.toString.call(s) === '[object Array]'
+	  s = [].concat(s)
+	  var $global = (typeof window !== 'undefined' ? window : global)
+	  $global.$locutus = $global.$locutus || {}
+	  var $locutus = $global.$locutus
+	  $locutus.php = $locutus.php || {}
+	  if (typeof (search) === 'object' && typeof (replace) === 'string') {
+	    temp = replace
+	    replace = []
+	    for (i = 0; i < search.length; i += 1) {
+	      replace[i] = temp
+	    }
+	    temp = ''
+	    r = [].concat(replace)
+	    ra = Object.prototype.toString.call(r) === '[object Array]'
+	  }
+	  if (typeof countObj !== 'undefined') {
+	    countObj.value = 0
+	  }
+	  for (i = 0, sl = s.length; i < sl; i++) {
+	    if (s[i] === '') {
+	      continue
+	    }
+	    for (j = 0, fl = f.length; j < fl; j++) {
+	      temp = s[i] + ''
+	      repl = ra ? (r[j] !== undefined ? r[j] : '') : r[0]
+	      s[i] = (temp).split(f[j]).join(repl)
+	      if (typeof countObj !== 'undefined') {
+	        countObj.value += ((temp.split(f[j])).length - 1)
+	      }
+	    }
+	  }
+	  return sa ? s : s[0]
+	}
+	
+
 
 
 

@@ -18,30 +18,34 @@ $errdescr = '';
 $FName = trim($_POST['FName']);
 $LName = trim($_POST['LName']);
 $PName = trim($_POST['PName']);
+$MName = trim($_POST['MName']);
 $BirthYear = $_POST['BirthYear'];
 
 
 
-if(mb_strlen($FName, 'utf-8') < 3){
+if(mb_strlen($FName, 'utf-8') < 4){
 	$errcode = 101;
 	$errdescr = 'Δεν έχετε συμπληρώσει το όνομα σας!';
-}elseif(mb_strlen($LName, 'utf-8') < 3){
+}elseif(mb_strlen($LName, 'utf-8') < 4){
 	$errcode = 102;
 	$errdescr = 'Δεν έχετε συμπληρώσει το επώνυμο σας!';
-}elseif(mb_strlen($PName, 'utf-8') < 3){
+}elseif(mb_strlen($PName, 'utf-8') < 4){
 	$errcode = 103;
 	$errdescr = 'Δεν έχετε συμπληρώσει το πατρώνυμο σας!';
-}elseif(findInvalidChars($FName)){
+}elseif(mb_strlen($MName, 'utf-8') < 4){
 	$errcode = 104;
+	$errdescr = 'Δεν έχετε συμπληρώσει το μητρώνυμο σας!';
+}elseif(findInvalidChars($FName)){
+	$errcode = 105;
 	$errdescr = 'Το όνομα σας περιέχει λατινικούς ή ειδικούς χαρακτήρες!';
 }elseif(findInvalidChars($LName)){
-	$errcode = 105;
+	$errcode = 106;
 	$errdescr = 'Το επώνυμο σας περιέχει λατινικούς ή ειδικούς χαρακτήρες!';
 }elseif(findInvalidChars($PName)){
-	$errcode = 106;
+	$errcode = 107;
 	$errdescr = 'Το πατρώνυμο σας περιέχει λατινικούς ή ειδικούς χαρακτήρες!';
 }elseif(empty($BirthYear)){
-	$errcode = 107;
+	$errcode = 108;
 	$errdescr = 'Δεν έχετε συμπληρώσει το έτος γέννησης σας!';
 }
 
@@ -52,7 +56,7 @@ if($errcode!=0){
 }
 	
 
-$YPESdata = getEidEklArDataFromDB($FName, $LName, $PName, $BirthYear);
+$YPESdata = getEidEklArDataFromDB($FName, $LName, $PName, $MName, $BirthYear);
 
 if($YPESdata['NumRows']==0){
 	$data['Error'] = 110;

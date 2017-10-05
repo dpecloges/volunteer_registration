@@ -12,7 +12,8 @@ echo
 
 <table><tbody>
 <td>ID</td>
-<td>Εγγραφή</td>
+<td>Εγγραφή ημερ.</td>
+<td>Εγγραφή ώρα</td>
 <td>#&nbsp;&nbsp;Ειδ.εκλ.αρ.</td>
 <td>Όνομα</td>
 <td>Επώνυμο</td>
@@ -22,6 +23,11 @@ echo
 <td>Email</td>
 <td>Κινητό</td>
 <td>Σταθερό</td>
+<td>Οδός</td>
+<td>Αριθμός</td>
+<td>Περιοχή</td>
+<td>Δήμος</td>
+<td>Τ.Κ.</td>
 <td>Διεύθυνση</td>
 <td>Νομός/Τομέας</td>
 <td>Επάγγελμα</td>
@@ -52,10 +58,13 @@ while($row = mysqli_fetch_array($result)){
 	$h2 = $row['H2']==1 ? 'ΝΑΙ</b>': 'ΟΧΙ</b>';
 	$h3 = $row['H3']==1 ? 'ΝΑΙ</b>': 'ΟΧΙ</b>';
 	$h4 = $row['H4']==1 ? 'ΝΑΙ</b>': 'ΟΧΙ</b>';
+	$Area = trim($row['Area'])=='' ? '': trim($row['Area']) . ", ";
 	
+
 	echo "<tr>";
 	echo "<td>" . $row['ID_Number']  . "</td>";
 	echo "<td>" . Date('j/n/Y', strtotime($row['RegDateTime']))  . "</td>";
+	echo "<td>" . Date('G:i', strtotime($row['RegDateTime']))  . "</td>";
 	echo "<td>#&nbsp;&nbsp;" . $row['EidEklAr']  . "</td>";
 	echo "<td>" . $row['FName']  . "</td>";
 	echo "<td>" . $row['LName']  . "</td>";
@@ -64,8 +73,13 @@ while($row = mysqli_fetch_array($result)){
 	echo "<td>" . $row['MName']  . "</td>";
 	echo "<td>" . $row['Email'] . "</td>";
 	echo "<td>" . $row['Mobile']  . "</td>";
-	echo "<td>" . $row['FixedPhone']  . "</td>";
-	echo "<td>" . $row['StreetName']  . " " . $row['StreetNumber']  . ", " . $row['Municipality']  . " " . $row['Zip']  . "</td>";
+	echo "<td>" . $row['FixedPhone']  . "</td>";	
+	echo "<td>" . $row['StreetName'] . "</td>";	
+	echo "<td>" . $row['StreetNumber']  . "</td>";	
+	echo "<td>" . $row['Area'] . "</td>";
+	echo "<td>" . $row['Municipality'] . "</td>";	
+	echo "<td>" . $row['Zip'] . "</td>";	
+	echo "<td>" . $row['StreetName']  . " " . $row['StreetNumber']  . ", " . $Area . $row['Municipality']  . " " . $row['Zip']  . "</td>";
 	echo "<td>" . $row['Division']  . "</td>";
 	echo "<td>" . $row['Job']  . "</td>";
 	echo "<td>" . $row['MiscSkills']  . "</td>";

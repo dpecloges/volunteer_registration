@@ -27,7 +27,6 @@ if($rowcount==0){
 	$errcode = 0;
 }
 
-mysqli_close($con);
 $data['Error'] = $errcode;
 $data['ErrorDescr'] = '';
 echo json_encode($data);

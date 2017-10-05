@@ -1,5 +1,5 @@
 <?php
-require_once("config.php");
+require_once("config/config.php");
 require_once("mailer/class.phpmailer.php");
 require_once('mandrill-api-php/src/Mandrill.php');
 
@@ -68,9 +68,9 @@ function getEidEklArData($eid_ekl_ar, $LName){
 		   substr($data, $p1, $p2 - $p1) . '</table>';
 }
 
-function getEidEklArDataFromDB($FName, $LName, $PName, $BirthYear){
+function getEidEklArDataFromDB($FName, $LName, $PName, $MName, $BirthYear){
 	$con = openDemeterDB();	
-	$sql = "CALL Find_Voter_Data('$FName','$LName','$PName', $BirthYear)";
+	$sql = "CALL Find_Voter_Data('$FName', '$LName', '$PName', '$MName', $BirthYear)";
 	$result = mysqli_query($con, $sql);	
 	$row = mysqli_fetch_array($result);
 	$num_rows = mysqli_num_rows($result);
