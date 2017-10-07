@@ -23,16 +23,16 @@ $BirthYear = $_POST['BirthYear'];
 
 
 
-if(mb_strlen($FName, 'utf-8') < 4){
+if(mb_strlen($FName, 'utf-8') < 2){
 	$errcode = 101;
 	$errdescr = 'Δεν έχετε συμπληρώσει το όνομα σας!';
 }elseif(mb_strlen($LName, 'utf-8') < 4){
 	$errcode = 102;
 	$errdescr = 'Δεν έχετε συμπληρώσει το επώνυμο σας!';
-}elseif(mb_strlen($PName, 'utf-8') < 4){
+}elseif(mb_strlen($PName, 'utf-8') < 2){
 	$errcode = 103;
 	$errdescr = 'Δεν έχετε συμπληρώσει το πατρώνυμο σας!';
-}elseif(mb_strlen($MName, 'utf-8') < 4){
+}elseif(mb_strlen($MName, 'utf-8') < 2){
 	$errcode = 104;
 	$errdescr = 'Δεν έχετε συμπληρώσει το μητρώνυμο σας!';
 }elseif(findInvalidChars($FName)){
@@ -58,10 +58,21 @@ if($errcode!=0){
 
 $YPESdata = getEidEklArDataFromDB($FName, $LName, $PName, $MName, $BirthYear);
 
+
+
+
+
 if($YPESdata['NumRows']==0){
 	$data['Error'] = 110;
 	$data['ErrorDescr'] = '<span style="color:red">Ο Ειδικός Εκλογικός Αριθμός δεν βρέθηκε!<br/>Παρακαλούμε ελέγξτε τα στοιχεία που έχετε εισάγει.</span>';
 	die(json_encode($data));	
+}
+
+if(EidEklArExist($YPESdata['Eid_ekl_ar'])){
+	$data['Error'] = 111;
+	$data['ErrorDescr'] = '<span style="color:red">Είστε ήδη καταχωρημένος!</span>';
+	die(json_encode($data));	
+	
 }
 
 $EidEklAr = $YPESdata['Eid_ekl_ar'];
@@ -168,4 +179,13 @@ function findInvalidChars($str){
 	return $r;
 }
 
+function EidEklArExist($EidEklArithm){		
+	$con = openDB();
+	$sql = "SELECT ID FROM vreg_volunteers WHERE EidEklAr = '$EidEklArithm'";
+	$result = mysqli_query($con, $sql);
+	$num_rows = mysqli_num_rows($result);
+	$r = ($num_rows > 0);
+	mysqli_close($con);		
+	return $r;
+}
 ?>

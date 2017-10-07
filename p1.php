@@ -52,32 +52,25 @@
         <div class="form-container">
         
             <form onsubmit="return false;" id="RegistrationForm">
-
+                <div class="form-group">
+                    <input class="form-control" type="text" placeholder="Επώνυμο (ολογράφως)" name="LName" id="LName" maxlength="30" />
+                </div>
                 <div class="form-group">
                     <input class="form-control" type="text" placeholder="Όνομα" name="FName" id="FName" maxlength="30" />
                 </div>
-
-                <div class="form-group">
-                    <input class="form-control" type="text" placeholder="Επώνυμο" name="LName" id="LName" maxlength="30" />
-                </div>
-
                 <div class="form-group">
                     <input class="form-control" type="text" placeholder="Πατρώνυμο" name="PName" id="PName" maxlength="30" />
                 </div>
-                
-
                 <div class="form-group">
                     <input class="form-control" type="text" placeholder="Mητρώνυμο " name="MName" id="MName" maxlength="30" />
-                </div>
-                
-                <div class="well" style="height:500px!important">
+                </div>                
+                <div class="well" style="height:600px!important">
                     <span>* Ειδικός Εκλογικός Αριθμός <b>(Μάθε που ψηφίζεις)</b></span>
                     <br />
                     <br />
                     <div class="row">
                         <div class="col-sm-12">
                             <input type="hidden" id="EidEklArithm" />
-                            <input type="hidden" id="MName" />
 							<input class="form-control display-inline-block" placeholder="Έτος γέννησης" type="text" name="BirthYear" id="BirthYear" maxlength="4" style="width:150px" />
 							&nbsp;&nbsp;
                             <button class="btn btn-primary-small" type="button" id="BtnFind" onclick="FindEidEklArithm();return false">Αναζήτηση</button>
@@ -85,11 +78,16 @@
                     </div>
                     <div class="row">&nbsp;</div>
                     <div class="row">&nbsp;</div>
-					<div class="row">
+					<div class="row" style="height:350px" >
 						<div class="col-sm-12">
-							<span id="EidEklArithmHtml"></span>
+							<span id="EidEklArithmHtml">
+								<h4>Εάν είστε κάτοικος εξωτερικού επικοινωνείστε σας παρακαλούμε με τη διεύθυνση <span style="color:blue">ethelontesdp@gmail.com</span></h4>
+							</span>
 						</div>
 					</div>
+					<h2>Σας παρακαλούμε ότι πρόβλημα έχετε στείλτε μήνυμα στην διεύθυνση <span style="color:blue">ethelontesdp@gmail.com</span></h2> 
+					
+					
                 </div>
 				   <div class="row">
 				    <div class="col-sm-6"><button class="btn btn-danger btn-block" onclick="ClearData();return false">Καθαρισμός φόρμας</button></div>
@@ -98,7 +96,6 @@
             </form>
         </div>
     </div>
-
 
 
   <!--------------------------------------------------------------- ERROR MODAL --------------------------------------------------------------->
@@ -137,49 +134,7 @@
 
 
 <script>
-/*
-	var	vFName = "";
-	var	vLName = "";
-	var	vPName = "";
-
-	$('#FName')[0].oninput = function(){
-		var s = $('#FName').val();		
-		if(s.includes(" ")){
-			$("#FName").val(vFName); 			
-		}else{
-			vFName = $("#FName").val()			
-		}
-	};
 	
-	$('#LName')[0].oninput = function(){
-		var s = $('#LName').val();		
-		if(s.includes(" ")){
-			$("#LName").val(vLName); 			
-		}else{
-			vLName = $("#LName").val()			
-		}
-	};
-
-	$('#PName')[0].oninput = function(){
-		var s = $('#PName').val();		
-		if(s.includes(" ")){
-			$("#PName").val(vPName); 			
-		}else{
-			vPName = $("#PName").val()			
-		}
-	};
-
-	var vBirthYear = "";
-	$('#BirthYear')[0].oninput = function(){
-		var BirthYear = $("#BirthYear").val();
-		var b = isNormalIntegerDigits(BirthYear);
-		if(b){
-			vBirthYear = BirthYear;
-		}else{
-			$("#BirthYear").val(vBirthYear);
-		}
-	};
-*/		
 	function submitData(){		
 		$('#RegistrationForm').data('formValidation').validate();
 		var isValid = $('#RegistrationForm').data('formValidation').isValid();	
@@ -215,28 +170,42 @@
 	function FindEidEklArithm(){
 		$('#RegistrationForm').data('formValidation').validate();
 		var isValid = $('#RegistrationForm').data('formValidation').isValid();	
-		if(!isValid) return;		
+		if(!isValid) return;
+		$("body").css({"cursor":"progress"});
+
+		$("#FName").attr("disabled", true); 
+		$("#LName").attr("disabled", true); 
+		$("#PName").attr("disabled", true); 
+		$("#MName").attr("disabled", true); 
+		$("#BirthYear").attr("disabled", true);
+		$("#BtnFind").attr("disabled", true);		
+
+		$('#EidEklArithmHtml').html('Παρακαλώ περιμένετε');
 		$.post('eideklarithm.php', {FName: $("#FName").val(), LName: $("#LName").val(), 
 								    PName: $("#PName").val(), MName: $("#MName").val(), 
 								    BirthYear: $("#BirthYear").val()}, function(data){
+			$("body").css({"cursor":"auto"});
 			if(data.Error == 0){
 				$('#EidEklArithmHtml').html(data.html);
 				$('#EidEklArithm').val(data.EidEklAr);
-				$("#FName").attr("disabled", true); 
-				$("#LName").attr("disabled", true); 
-				$("#PName").attr("disabled", true); 
-				$("#BirthYear").attr("disabled", true);
-				$("#BtnFind").attr("disabled", true);
 				$("#BtnNext").attr("disabled", false); 					
 				$('#FName').val(data.FName);						
 				$('#PName').val(data.PName);
-				$('#MName').val(data.MName);		
-			}else if(data.Error==110){	
-				$('#EidEklArithmHtml').html(data.ErrorDescr);
-				$('#EidEklArithm').val('');
+				$('#MName').val(data.MName);
 			}else{
-				$("#ErrorMsg").html(data.ErrorDescr);
-				$('#ErrModal').modal('show');
+				$("#FName").attr("disabled", false); 
+				$("#LName").attr("disabled", false); 
+				$("#PName").attr("disabled", false); 
+				$("#MName").attr("disabled", false);
+				$("#BirthYear").attr("disabled", false);
+				$("#BtnFind").attr("disabled", false);				
+				if(data.Error==110){
+					$('#EidEklArithmHtml').html(data.ErrorDescr);
+					$('#EidEklArithm').val('');
+				}else{
+					$("#ErrorMsg").html(data.ErrorDescr);
+					$('#ErrModal').modal('show');
+				}
 			}
 		}, "json");
 	}
@@ -272,12 +241,12 @@
 		            BirthYear: {
 		                validators: {
 		                    notEmpty: {
-		                        message: 'Το πεδίο Έτος γέννησης είναι υποχρεωτικό!'
+		                        message: '<span style="color:#a94442">Το πεδίο Έτος γέννησης είναι υποχρεωτικό!</span>'
 		                    },
 		                    between: {
 	                            min: 1900,
 	                            max: 2005,
-	                            message: 'Παρακαλούμε εισάγετε έγκυρο έτος γέννησης!'
+	                            message: '<span style="color:#a94442">Παρακαλούμε εισάγετε έγκυρο έτος γέννησης!</span>'
 	                        }
 		                }
 		            },            
@@ -293,8 +262,8 @@
 		                        message: 'Το πεδίο Όνομα είναι υποχρεωτικό!'
 		                    },
 		                    stringLength: {
-		                        min: 4,
-		                        message: 'Παρακαλούμε εισάγετε έγκυρο Όνομα! (τουλάχιστον 4 χαρακτήρες)'
+		                        min: 2,
+		                        message: 'Παρακαλούμε εισάγετε το όνομα σας'
 		                    }
 		                }
 		            },
@@ -310,8 +279,8 @@
 		                        message: 'Το πεδίο Επώνυμο είναι υποχρεωτικό!'
 		                    },
 		                    stringLength: {
-		                        min: 4,
-		                        message: 'Παρακαλούμε εισάγετε έγκυρο Επώνυμο! (τουλάχιστον 4 χαρακτήρες)'
+		                        min: 2,
+		                        message: 'Παρακαλούμε εισάγετε ολογράφως το επώνυμο σας'
 		                    }
 		                }
 		            },
@@ -327,8 +296,8 @@
 		                        message: 'Το πεδίο Πατρώνυμο είναι υποχρεωτικό!'
 		                    },
 		                    stringLength: {
-		                        min: 4,
-		                        message: 'Παρακαλούμε εισάγετε έγκυρο Πατρώνυμο! (τουλάχιστον 4 χαρακτήρες)'
+		                        min: 2,
+		                        message: 'Παρακαλούμε εισάγετε έγκυρο Πατρώνυμο! (τουλάχιστον 2 χαρακτήρες)'
 		                    }
 		                }
 		            },
@@ -344,8 +313,8 @@
 		                        message: 'Το πεδίο Mητρώνυμο είναι υποχρεωτικό!'
 		                    },
 		                    stringLength: {
-		                        min: 4,
-		                        message: 'Παρακαλούμε εισάγετε έγκυρο Mητρώνυμο! (τουλάχιστον 4 χαρακτήρες)'
+		                        min: 2,
+		                        message: 'Παρακαλούμε εισάγετε έγκυρο Mητρώνυμο! (τουλάχιστον 2 χαρακτήρες)'
 		                    }
 		                }
 		            }
@@ -478,8 +447,8 @@
 			FixTextInputCharacters(	$('#LName'));
 		};
 	
-		$('#FName')[0].oninput = function(){
-			FixTextInputCharacters(	$('#FName'));
+		$('#PName')[0].oninput = function(){
+			FixTextInputCharacters(	$('#PName'));
 		};
 		
 		$('#MName')[0].oninput = function(){

@@ -15,7 +15,7 @@ if($_SERVER['HTTP_REFERER']!=$referer){
 
 $AddressStreetName = trim($_POST['StreetName']);
 $AddressStreetNumber = trim($_POST['StreetNumber']);
-$Locality = trim($_POST['Locality']);
+$Locality = trim($_POST['Area']);
 $Municipality = $_POST['Municipality'];
 $AddressZip = trim($_POST['Zip']);
 $Division = $_POST['Division'];
@@ -23,11 +23,10 @@ $AddressCountry = $_POST['Country'];
 $NoNumbersAddress = $_POST['NoNumbersAddress']==1;
 $CustomAddresss = $_POST['CustomAddress']==1;
 $FixedPhone = $_POST['FixedPhone'];
-$AddressIsValid =
-		!empty($AddressStreetName) && 
-		(!empty($AddressStreetNumber) || $NoNumbersAddress) && 
-		!empty($AddressZip) && 
-		$AddressCountry == 'Ελλάδα';
+
+
+
+$AddressIsValid = !empty($AddressStreetName) && !empty($Municipality) && (!empty($AddressStreetNumber) || $NoNumbersAddress);
 
 $errcode = 0;
 if($_SESSION['Email_PIN_Validated']!==TRUE){

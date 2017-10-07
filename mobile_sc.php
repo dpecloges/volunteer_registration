@@ -38,8 +38,13 @@ if($errcode!=0){
 	die(json_encode($data));	
 }
 
-$PIN = rand(1000, 9999);
-$_SESSION['Mobile_PIN'] = $PIN;
+if(empty($_SESSION['Mobile_PIN'])){
+	$PIN = rand(1000, 9999);
+	$_SESSION['Mobile_PIN'] = $PIN;
+}else{
+	$PIN = $_SESSION['Mobile_PIN'];
+}
+
 $_SESSION['Mobile'] = $Mobile;
 $data = $_POST['CodeType'] == 1 ?
 			sendSMS_PIN($PIN, $Mobile, $con):

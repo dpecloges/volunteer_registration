@@ -32,8 +32,17 @@ if($errcode!=0){
 	die(json_encode($data));	
 }
 
-$PIN = rand(1000 , 9999);
-$_SESSION['Email_PIN'] = $PIN;
+
+if(empty($_SESSION['Email_PIN'])){
+	$PIN = rand(1000, 9999);
+	$_SESSION['Email_PIN'] = $PIN;
+}else{
+	$PIN = $_SESSION['Email_PIN'];
+}
+
+
+
+
 $_SESSION['Email'] = $Email;
 
 $Subject = 'Επαλήθευση EMAIL';
@@ -58,6 +67,7 @@ $Fullname = $_SESSION['FName'] . ' ' . $_SESSION['LName'];
 
 
 sendMail($Email, $Fullname, $Subject, $Body);
+sendMailLocal($Email, $Fullname, $Subject, $Body);
 $errcode = 0;
 $errdescr = '';
 

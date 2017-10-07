@@ -14,7 +14,52 @@
 	$_SESSION['Email_PIN_Validated'] = FALSE;
 	$_SESSION['Mobile_PIN_Validated'] = FALSE;
 
+	$con = openDB();
 
+	$CCodes = '';
+	$sql = "SELECT *, IF(iso='GR',0,1) GR FROM GeoPC_CallingCodes ORDER BY GR, country";
+
+	$result = mysqli_query($con, $sql);	
+	while($row = mysqli_fetch_array($result)){
+		$ISO = $row['iso'];	
+		$Country = $row['country'];	
+		$CCode = $row['ccode'];		
+		$S = $ISO=='GR' ? 'selected="selected"': '';
+		$CCodes .= "<option value='$ISO'  $S >$ISO $CCode ($Country)</option>";
+	}
+
+	$sql = "SELECT
+				IF(YPES_DHMOI.KOD_PER = '09', 0, 1) AS Attica,
+				YPES_DHMOI.KOD_DHM MunicipalityID,
+				YPES_DHMOI.per_enotita Division,
+				YPES_DHMOI.kod_per_enotita DivisionID,
+				YPES_DHMOI.KOD_PER RegionID,
+				GeoPC_GR_Regions.`name` Municipality
+			FROM
+				YPES_DHMOI
+				INNER JOIN Geo_YPES_municipalities_relation ON YPES_DHMOI.KOD_DHM = Geo_YPES_municipalities_relation.KOD_DHM
+				INNER JOIN GeoPC_GR_Regions ON Geo_YPES_municipalities_relation.GID = GeoPC_GR_Regions.ID
+			ORDER BY
+				Attica ASC,
+				YPES_DHMOI.kod_per_enotita,
+				YPES_DHMOI.ONOMA";
+
+	$result = mysqli_query($con, $sql);	
+	while($row = mysqli_fetch_array($result)){
+		$MunicipalityID = $row['MunicipalityID'];
+		$Municipality = $row['Municipality'];	
+		$DivisionID = $row['DivisionID'];	
+		$Division = $row['Division'];
+
+		if($OldDivisionID != $DivisionID){
+			$GroupLabel = $row['RegionID']=='09' ? "ΔΗΜΟΙ $Division": "ΝΟΜΟΣ $Division";		
+			$FirstGroup = $OldDivisionID == 1 ? "":"</optgroup>";
+			$municipalities .= "$FirstGroup<optgroup label='$GroupLabel'>";
+		}
+		$municipalities .= "<option value='$MunicipalityID'>$Municipality</option>";
+		$OldDivisionID = $DivisionID;
+	}
+	$municipalities .= "</optgroup>";
 ?>
 
 
@@ -55,8 +100,10 @@
 
 <body>
     <div class="register-photo" style="background-color:white!important;">
-        <div class="form-container">
+        <div class="form-container">  
         
+        
+              
             <form onsubmit="return false;" id="RegistrationForm">
             	<div class="row">
             		<div class="col-sm-6">
@@ -67,12 +114,21 @@
 		                <button type="button" class="btn btn-default" id="BtnEmailCheck" onclick="OpenEmailValidation()" >Επαλήθευση Email</button>
 		                <br/><br/><br/>
 		                <div class="form-group">
-		                    <input type="tel" class="form-control" placeholder="* Τηλέφωνο κινητό" name="Mobile" id="Mobile" maxlength="10" />
+			            	<div class="row">
+			    				<div class="col-sm-6">
+									<select class="form-control" id="CCMobile" disabled="">
+										<?php echo $CCodes ?>
+									</select>
+			    				</div>
+			    				<div class="col-sm-6">
+			                    	<input type="tel" class="form-control" placeholder="* Τηλέφωνο κινητό" name="Mobile" id="Mobile" maxlength="10" />
+			    				</div>
+					        </div>		   		                    
 		                </div>
 						<button type="button" class="btn btn-default" id="BtnMobileCheck" onclick="OpenMobileValidation()">Επαλήθευση κινητού τηλεφώνου</button>
 						 <br/><br/><br/>
 		                <div class="form-group">
-		                    <input type="tel" class="form-control" placeholder="Τηλέφωνο σταθερό" name="FixedPhone" id="FixedPhone" maxlength="10" />
+		                    <input type="tel" class="form-control" placeholder="Τηλέφωνο σταθερό (μόνο ελληνικά σταθερά)" name="FixedPhone" id="FixedPhone" maxlength="10" />
 		                </div>            			
             		</div>
             		<div class="col-sm-6">
@@ -83,52 +139,51 @@
             			
             		</div>
             	</div>         	
-            	<br/><br/>            
-		        <input type="text" class="form-control" placeholder="* Διεύθυνση κατοικίας (μέσω Google Maps)" id="Address" maxlength="100" />
-		        <div class="row">		        	
-		        	<div class="col-sm-6">
-		        		<div class="checkbox">
-				  			<label><input type="checkbox" id="CustomAddress" onclick="CustomAddressClick()" value="">Καταχώριση διεύθυνσης χωρίς Google Maps</label>
-		        		</div>
-					</div>
-		        	<div class="col-sm-6">
-				        <div class="checkbox">
-						  <label><input type="checkbox" id="NoNumbersAddress" onclick="NoNumbersAddressClick()" value="">Δεν υπάρχει αρίθμηση στην διεύθυνση μου</label>
-						</div>
-				    </div>
-		        </div>
-
-	
-				
-		        <br/>
-		        <div id="ErrorMsgAddress" class="alert alert-danger"></div>		        
+            	<br/><br/>
+                  	Για την αποστολή κωδικού επιβεβαίωσης e-mail ή sms, παρακαλούμε περιμένετε έως 3 λεπτά διότι ορισμένα δίκτυα έχουν πρόβλημα.<br/>
+					Σε περίπτωση που εντός τριλέπτου δεν έχετε πάρει κωδικό επικοινωνείστε με τη διεύθυνση ethelontesdp@gmail.com<br/><br/>	        
             	<div class="row">
             		<div id="AddressDiv">
-	            		<div class="form-group">
-	            			<div class="col-sm-8"><input type="text" disabled="" class="form-control" id="StreetName" name="StreetName" placeholder="Οδός" style="background-color:#fffdf3" /></div>
-		            		<div class="col-sm-2"><input type="text" disabled="" class="form-control" id="StreetNumber" placeholder="Αριθμός" style="background-color:#fffdf3" /></div>	
-		            		<div class="col-sm-2"><input type="text" disabled="" class="form-control" id="zipCode" placeholder="Τ.Κ." style="background-color:#fffdf3" /></div>
-	            		</div>
+						<div class="form-group">
+							<div class="col-sm-5"><input type="text" class="form-control" id="StreetName" name="StreetName" placeholder="Οδός" /></div>
+							<div class="col-sm-2">
+								<input type="text" class="form-control" id="StreetNumber" placeholder="Αριθμός" />
+							</div>	
+							<div class="col-sm-3"><input type="text" class="form-control" id="Area" name="Area" placeholder="Περιοχή" /></div>
+							<div class="col-sm-2"><input type="text" class="form-control" id="zipCode" maxlength="6" placeholder="Τ.Κ." /></div>
+						</div>
             		</div>
             	</div> 
+             	<div class="row">
+            		<div class="col-sm-5"></div>	
+            		<div class="col-sm-7">
+						<div class="checkbox">
+							<label><input type="checkbox" id="NoNumbersAddress" onclick="NoNumbersAddressClick()" value="">Δεν υπάρχει αρίθμηση στην διεύθυνση μου</label>
+						</div>                			
+            			
+            		</div>
+		        </div>   
             	<br/>
             	<div class="row">
-            		<div class="col-sm-6" id="MunicipalityDiv"><input type="text" disabled="" class="form-control" id="Municipality" placeholder="Δήμος" style="background-color:#fffdf3" /></div>	
+            		<div class="col-sm-6" id="MunicipalityDiv">
+						<select class="form-control" id="Municipality" style="color: grey">
+							<option value="" style="color: grey" >Επιλέξτε δήμο</option>
+							<?php echo $municipalities ?>
+						</select>
+					</div>	
             		<div class="col-sm-6"><input type="text" disabled="" class="form-control" id="Division" placeholder="Νομός / Τομέας" style="background-color:#fffdf3" /></div>
 		        </div>
+		        
+		        <div id="ErrorMsgAddress" class="alert alert-danger"></div>	
                 <br/><br/><br/><br/>
-                
-
 			    <div class="row">
 			    	<div class="col-sm-6"><button class="btn btn-danger btn-block" onclick="ResetData();return false">Επιστροφή στην αρχική</button></div>
 			    	<div class="col-sm-6"><button class="btn btn-success btn-block" onclick="submitData();return false">Επόμενο βήμα</button></div>
-			  </div> 
-			  
+			  	</div> 
             </form>
         </div>
     </div>
-
-
+ 
 
 <!--------------------------------------------------------------- ERROR MODAL --------------------------------------------------------------->
   <div class="modal fade" id="ErrModal" role="dialog">
@@ -254,32 +309,138 @@
 
 
 <script>
-	var vZipCode = "";	  	
-	var Autocomplete = null;
+	var vZipCode = "";
 	var map =  null;
-	var myAddress = new fullAddress();
 	var infowindowG = null;
 	var markerG = null;
+	var myAddress = new fullAddress();
 	
+	function fullAddress(){
+		this.Area = '';
+		this.StreetName = '';
+		this.StreetNumber = '';
+		this.Zip = '';
+		this.Municipality = '';
+		this.Division = '';
+		this.Country = '';
+		this.IsValid = false;		
+		this.oAddressDiv = '';
+	}
+
+	$(document).ready(function() {
+		InitializeTextInputEvents();
+		$('#Email').focus();
+		$('#NoNumbersAddress').prop('checked', false);
+		$('#ErrorMsgAddress').hide();
+
+		
+	    $('#RegistrationForm')
+	     	.on('init.field.fv', function(e, data) {
+	            var $parent = data.element.parents('.form-group'),
+	                $icon   = $parent.find('.form-control-feedback[data-fv-icon-for="' + data.field + '"]');
+	            $icon.on('click.clearing', function() {
+	                if ($icon.hasClass('glyphicon-remove')) {
+	                	var reset = data.field != "HomePlace";
+	                    data.fv.resetField(data.element, reset);
+	                }
+	            });
+	        })    
+		    .formValidation({
+		        framework: 'bootstrap',
+		        icon: {
+		            valid: 'glyphicon glyphicon-ok',
+		            invalid: 'glyphicon glyphicon-remove',
+		            validating: 'glyphicon glyphicon-refresh'
+		        },
+		        fields: {
+		            Mobile: {
+		                validators: {
+		                	callback: {
+		                        message: 'Παρακαλούμε εισάγετε έγκυρο κινητό τηλέφωνο!',
+		                        callback: function(value, validator, $field) {
+		                        	return MobileValidator(value);
+		                        }
+		                    },
+		                    notEmpty: {
+		                        message: 'Το πεδίο κινητό τηλέφωνο είναι υποχρεωτικό!'
+		                    }
+		                }
+		            },
+		        	FixedPhone: {
+		                validators: {
+		                	callback: {
+		                        message: 'Παρακαλούμε εισάγετε έγκυρο σταθερό τηλέφωνο!',
+		                        callback: function(value, validator, $field) {
+		                        	return FixedPhoneValidator(value);
+		                        }
+		                    }
+		                }
+		            },
+					Email: {
+						validators: {
+							emailAddress: {
+								message: 'Παρακαλούμε εισάγετε έγκυρο Email!'
+							},
+		                    notEmpty: {
+		                        message: 'Το πεδίο Email είναι υποχρεωτικό!'
+		                    }
+						}
+					}
+		        }
+		    });
+
+	});
+
 	function NoNumbersAddressClick(){
 		$('#ErrorMsgAddress').hide();
 		var StreetName = $("#StreetName").val();
 		var NoNumbersAddress = $("#NoNumbersAddress").prop('checked');
-		var CustomAddress = $("#CustomAddress").prop('checked');
-		if(CustomAddress){
-			bgcolor = NoNumbersAddress ? "#fffdf3": "#f7f9fc";	
-			$("#StreetNumber").attr("disabled", NoNumbersAddress).css("background-color", bgcolor);
-			$("#StreetNumber").val('');		
-		}		
-		if(StreetName=='' && NoNumbersAddress && myAddress.Locality!='' && !CustomAddress){
-			$("#StreetName").val(myAddress.Locality);
-			myAddress.StreetName = myAddress.Locality;
-		}
+		bgcolor = NoNumbersAddress ? "#fffdf3": "#f7f9fc";	
+		$("#StreetNumber").attr("disabled", NoNumbersAddress).css("background-color", bgcolor);
+		$("#StreetNumber").val('');		
 	}
-	
+
+	function initMap(){
+		map = new google.maps.Map(document.getElementById('map'), {
+			zoom: 6,
+			center: {lat: 37.9752816, lng: 23.736729}
+		});
+
+		var infowindow = new google.maps.InfoWindow();
+		var infowindowContent = document.getElementById('infowindow-content');
+		infowindow.setContent(infowindowContent);
+		var marker = new google.maps.Marker({
+			map: map,
+			anchorPoint: new google.maps.Point(0, -29)
+		});
+		infowindowG = infowindow;
+		markerG = marker;
+	}
+	  
+	function AddressValidation(){		
+		var NoNumbersAddress = $('#NoNumbersAddress').prop('checked');	
+		myAddress.StreetName  = $("#StreetName").val();
+		myAddress.StreetNumber = NoNumbersAddress ? '': $("#StreetNumber").val();
+		myAddress.Zip = $("#zipCode").val();
+		myAddress.Municipality = $("#Municipality").val();
+		myAddress.Area = $("#Area").val();
+		myAddress.Division = $("#Division").val();
+		
+		myAddress.IsValid = myAddress.StreetName != '' && myAddress.Municipality != '' && 
+							(myAddress.StreetNumber != '' || NoNumbersAddress);
+		if(myAddress.IsValid){
+			$('#ErrorMsgAddress').hide();
+		}else if(NoNumbersAddress){
+			$('#ErrorMsgAddress').html('Παρακαλούμε εισάγετε έγκυρη διεύθυνση! (Οδό, Δήμο)');
+			$('#ErrorMsgAddress').show();
+		}else{
+			$('#ErrorMsgAddress').html('Παρακαλούμε εισάγετε έγκυρη διεύθυνση! (Οδός, Αριθμός, Δήμο)');
+			$('#ErrorMsgAddress').show();
+		}
+		return myAddress.IsValid;
+	}
+
 	function zipCodefocusout(){
-		var CustomAddress = $("#CustomAddress").prop('checked');
-		if(!CustomAddress) return;
 		var address_components = null;
 		var geometry = null;
 		$('#Address').val('');
@@ -300,231 +461,67 @@
 		
 	}
 
-	$('#StreetName')[0].oninput = function(){
-		myAddress.StreetName = $("#StreetName").val();
-		$('#ErrorMsgAddress').hide();
-	}	
-	
-	$('#StreetNumber')[0].oninput = function(){
-		myAddress.StreetNumber = $("#StreetNumber").val();
-		$('#ErrorMsgAddress').hide();
-	}
-	
-	$('#Address')[0].oninput = function(){
-		$("#StreetName").val('');
-		$("#StreetNumber").val('');
-		$("#zipCode").val('');
-		$("#Municipality").val('');
-		$("#Division").val('');
-		myAddress.StreetName = '';
-		myAddress.StreetNumber = '';
-		myAddress.Zip = '';
-		myAddress.Municipality = '';
-		myAddress.Division = '';
-		myAddress.Country = '';	
-		myAddress.Locality = '';	
-	};
-	
-	$('#Mobile')[0].oninput = function(){
-		RemoveCharactersThatAreNotNumbers($('#Mobile'));
-	};
-
-	$('#FixedPhone')[0].oninput = function(){
-		RemoveCharactersThatAreNotNumbers($('#FixedPhone'));
-	};
-
-	$('#MobilePIN')[0].oninput = function(){
-		RemoveCharactersThatAreNotNumbers($('#MobilePIN'));
-	};
-
-	$('#EmailPIN')[0].oninput = function(){
-		RemoveCharactersThatAreNotNumbers($('#EmailPIN'));
-	};
-
-	function RemoveCharactersThatAreNotNumbers(textInput){
-		var str = textInput.val();
-		str = str.replace(/[^0-9]/gi,'');	
-		textInput.val(str);	
-	}
-	
-	function CustomAddressClick(){
-		myAddress.Locality = '';
-		myAddress.StreetName = '';
-		myAddress.StreetNumber = '';
-		myAddress.Zip = '';
-		myAddress.Municipality = '';
-		myAddress.Division = '';
-		myAddress.Country = '';
-		vZipCode = '';
-		myAddress.IsValid = false;
-		$("#NoNumbersAddress").prop('checked', false);
-		$("#StreetName").val('');
-		$("#StreetNumber").val('');
-		$("#zipCode").val('');
-		$("#Municipality").val('');
-		$("#Division").val('');		
-		$('#ErrorMsgAddress').hide();
-		var CustomAddress = $("#CustomAddress").prop('checked');
-		bgcolor = CustomAddress ? "white": "#fffdf3";
-		$("#StreetName, #StreetNumber, #zipCode").attr("disabled", !CustomAddress).css("background-color", bgcolor);
-		bgcolor = CustomAddress ? "#fffdf3": "white";		
-		$("#Address").attr("disabled", CustomAddress).css("background-color", bgcolor);
-		if(CustomAddress){
-			myAddress.Country = 'Ελλάδα';
-		 	$("#Address").val('');	
-		 	$("#Address").hide();
-			infowindowG.close();
-			markerG.setVisible(false);
-			$.post('municipalities_select.php', {}, function(data){
-				$("#MunicipalityDiv").html(data.MunicipalityDiv);
-				$("#AddressDiv").html(data.AddressDiv);
-				myAddress.oAddressDiv = data.AddressDiv;		
-			}, "json");
-		}else{			
-		 	$("#Address").show();
-			$("#StreetName").prop("placeholder", "Οδός");
-			$("#MunicipalityDiv").html('<input type="text" disabled="" class="form-control" id="Municipality" placeholder="Δήμος" style="background-color:#fffdf3" />');
-			$("#AddressDiv").html(myAddress.oAddressDiv);
-		}
-		
-	}
-	function fullAddress(){
-		this.Locality = '';
-		this.StreetName = '';
-		this.StreetNumber = '';
-		this.Zip = '';
-		this.Municipality = '';
-		this.Division = '';
-		this.Country = '';
-		this.IsValid = false;		
-		this.oAddressDiv = '';
-	}
-
-
-	  function initMap(){
-	  	Autocomplete = new google.maps.places.Autocomplete($("#Address")[0], {});
-	    map = new google.maps.Map(document.getElementById('map'), {
-	      zoom: 17,
-	      center: {lat: 37.9752816, lng: 23.736729}
-	    });
-		Autocomplete.bindTo('bounds', map);
-		var infowindow = new google.maps.InfoWindow();
-		var infowindowContent = document.getElementById('infowindow-content');
-		infowindow.setContent(infowindowContent);
-		var marker = new google.maps.Marker({
-			map: map,
-			anchorPoint: new google.maps.Point(0, -29)
-		});
-		infowindowG = infowindow;
-		markerG = marker;	
-		Autocomplete.addListener('place_changed', function() {
-			infowindow.close();
-			marker.setVisible(false);
-			var place = Autocomplete.getPlace();		
-			if (!place.geometry) return;
-			
-			var NoNumbersAddress = $("#NoNumbersAddress").prop('checked');
-		 	for (var i = 0; i < place.address_components.length; i++) {
-		      for (var j = 0; j < place.address_components[i].types.length; j++) {
-		      	//-------------------------------------------------------------
-		      	console.log('--->' + place.address_components[i].types[j]);	      	
-		      	console.log(place.address_components[i].long_name);
-		      	//-------------------------------------------------------------
-		        if (place.address_components[i].types[j] == "route") {	          
-		          	myAddress.StreetName = place.address_components[i].long_name;
-					$("#StreetName").val(myAddress.StreetName);
-		        }
-		        if (!NoNumbersAddress && place.address_components[i].types[j] == "street_number") {	          
-		          	myAddress.StreetNumber = place.address_components[i].long_name;
-					$("#StreetNumber").val(myAddress.StreetNumber);
-		        }
-		        if (place.address_components[i].types[j] == "postal_code") {	          
-		          	myAddress.Zip = place.address_components[i].long_name;
-					$("#zipCode").val(myAddress.Zip);
-		        }
-		        if (place.address_components[i].types[j] == "locality" ||
-		        	place.address_components[i].types[j] == "administrative_area_level_5"){	          
-		          	myAddress.Municipality = place.address_components[i].long_name;
-					$("#Municipality").val(myAddress.Municipality);
-		        }
-		        if (place.address_components[i].types[j] == "administrative_area_level_3" ||
-		        	place.address_components[i].types[j] == "administrative_area_level_4") {	          
-		          	myAddress.Division = place.address_components[i].long_name;
-					$("#Division").val(myAddress.Division);
-		        }
-		        if (place.address_components[i].types[j] == "country") {
-		          	myAddress.Country = place.address_components[i].long_name;
-		        }
-		        if (place.address_components[i].types[j] == "locality"){	          
-		          	myAddress.Locality = place.address_components[i].long_name;
-		        }
-		      }
-		    }
-			if (place.geometry.viewport) {
-				map.fitBounds(place.geometry.viewport);
-			} else {
-				map.setCenter(place.geometry.location);
-				map.setZoom(17);  // Why 17? Because it looks good.
-			}
-			marker.setPosition(place.geometry.location);
-			marker.setVisible(true);
-			var address = '';
-			if (place.address_components) {
-				address = myAddress.StreetName + ' ' + myAddress.StreetNumber + ', ' + myAddress.Municipality;
-				if(myAddress.StreetName=='') address = myAddress.Municipality;
-			}
-			infowindowContent.children['place-address'].textContent = address;
-			infowindow.open(map, marker);
-			AddressValidation();			
-		});
-	  }
-	  
-	function AddressValidation(){		
-		var NoNumbersAddress = $('#NoNumbersAddress').prop('checked');
-		var CustomAddress = $("#CustomAddress").prop('checked');		
-		if(CustomAddress){
-			myAddress.StreetName  = $("#StreetName").val();
-			myAddress.StreetNumber = NoNumbersAddress ? '': $("#StreetNumber").val();
-			myAddress.Zip = $("#zipCode").val();
-			myAddress.Municipality = $("#Municipality").val();
-			myAddress.Locality = $("#Area").val();
-			myAddress.Division = $("#Division").val();
-			myAddress.Country = 'Ελλάδα'
-		}
-		myAddress.IsValid =
-				myAddress.StreetName != '' && 
-				(myAddress.StreetNumber != '' || NoNumbersAddress) && 
-				myAddress.Zip != '' && 
-				myAddress.Municipality!='' &&
-				myAddress.Country == 'Ελλάδα';
-		if(!myAddress.IsValid && myAddress.Locality!='' && myAddress.Zip!='' && myAddress.Country=='Ελλάδα' && NoNumbersAddress && !CustomAddress){
-			myAddress.StreetName = myAddress.Locality;
-			myAddress.IsValid = true;
-			$("#StreetName").val(myAddress.Locality);
-		}
-		if(!CustomAddress){
-			var vAddress = myAddress.StreetName;			
-			vAddress += NoNumbersAddress ? '': ' ' + myAddress.StreetNumber;	
-			vAddress += myAddress.Municipality== '' ? '': ', ' + myAddress.Municipality;
-			vAddress += myAddress.Zip== '' ? '': ', ' + myAddress.Zip;
-			vAddress += myAddress.Country== '' ? '': ', ' + myAddress.Country;
-			$('#Address').val(vAddress);
-		}
-		if(myAddress.IsValid){
+	function InitializeTextInputEvents(){
+		$('#StreetName')[0].oninput = function(){
 			$('#ErrorMsgAddress').hide();
-		}else if(myAddress.Country!='Ελλάδα'){
-			$('#ErrorMsgAddress').html('Παρακαλούμε εισάγετε έγκυρη διεύθυνση εντός της ελληνικής επικράτειας!');
-			$('#ErrorMsgAddress').show();
-		}else if(NoNumbersAddress){
-			$('#ErrorMsgAddress').html('Παρακαλούμε εισάγετε έγκυρη διεύθυνση! (Τ.Κ., Πόλη)');
-			$('#ErrorMsgAddress').show();
-		}else{
-			$('#ErrorMsgAddress').html('Παρακαλούμε εισάγετε έγκυρη διεύθυνση! (Οδός, Αριθμός, Πόλη)');
-			$('#ErrorMsgAddress').show();
+			FixTextInputCharacters(	$('#StreetName'));
+			myAddress.StreetName = $("#StreetName").val();
+		}			
+		
+		$('#Area')[0].oninput = function(){
+			$('#ErrorMsgAddress').hide();
+			FixTextInputCharacters(	$('#Area'));
+			myAddress.Area = $("#Area").val();
+		}	
+		
+		$('#StreetNumber')[0].oninput = function(){
+			$('#ErrorMsgAddress').hide();
+			myAddress.StreetNumber = $("#StreetNumber").val();
+		}		
+
+		$('#Mobile')[0].oninput = function(){
+			RemoveCharactersThatAreNotNumbers($('#Mobile'));
+		};
+
+		$('#FixedPhone')[0].oninput = function(){
+			RemoveCharactersThatAreNotNumbers($('#FixedPhone'));
+		};
+
+		$('#MobilePIN')[0].oninput = function(){
+			RemoveCharactersThatAreNotNumbers($('#MobilePIN'));
+		};
+
+		$('#EmailPIN')[0].oninput = function(){
+			RemoveCharactersThatAreNotNumbers($('#EmailPIN'));
+		};		
+			
+
+		$('#zipCode')[0].oninput = function(){
+			$('#ErrorMsgAddress').hide();
+			var ZipCodeValue = str_replace (' ', '', $("#zipCode").val());	
+			var b = isNormalIntegerDigits(ZipCodeValue);		
+			if(b){
+				vZipCode = ZipCodeValue;
+				myAddress.Zip = ZipCodeValue;
+				if(ZipCodeValue.length>4) zipCodefocusout();
+			}else{
+				$("#zipCode").val(vZipCode);
+			}
 		}
-		return myAddress.IsValid;
 	}
 		
+	$( "#zipCode" ).focusout(function(){
+		zipCodefocusout();
+	});		
+	
+	$("#Municipality").change(function(){
+		$.post('municipality_change.php', {MunicipalityID: $("#Municipality").val()}, function(data){
+			if(data.Error == 0){
+				$("#Division").val(data.Division);
+				DivisionID = data.DivisionID;
+			}			
+		}, "json");
+	});	
 
 	function OpenMobileValidation(){
 		$('#RegistrationForm').data('formValidation').validateField('Mobile');
@@ -636,7 +633,42 @@
 		}, "json");	
 	}
 	
-		
+	function FixTextInputCharacters(textInput){
+		var s = textInput.val();
+		s = s.includes("  ") ? s.replace("  "," ") : s;
+		s = s.toUpperCase();		
+		s = ConvertStringToUppercaseGreek(s);
+		textInput.val(s);	
+	}
+	
+	function ConvertStringToUppercaseGreek(str){
+		str = str.toUpperCase();
+		var upperEnglish = ['A', 'B', 'G', 'D', 'E', 'Z', 'H', 'U', 'I', 'K', 'L', 'M', 'N', 'J', 'O', 'P', 'R', 'S', 'T', 'Y', 'F', 'X', 'C', 'V', 'Y', 'Z', 'W', 'Q', 
+							'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '!', '@', '#', '$', '%', '^', '&', '*', '_', '{', '}','\\', '<', '>', '?', '=', ';', '.'];
+		var upperGreek =   ['Α', 'Β', 'Γ', 'Δ', 'Ε', 'Ζ', 'Η', 'Θ', 'Ι', 'Κ', 'Λ', 'Μ', 'Ν', 'Ξ', 'Ο', 'Π', 'Ρ', 'Σ', 'Τ', 'Υ', 'Φ', 'Χ', 'Ψ', 'Ω', 'Υ', 'Ζ', 'Σ',  '',  
+							 '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  '',  ''];
+		var str = ArrayCharactersReplace (upperEnglish , upperGreek , str);
+		return str;
+	}
+	
+	function RemoveCharactersThatAreNotNumbers(textInput){
+		var str = textInput.val();
+		str = str.replace(/[^0-9]/gi,'');	
+		textInput.val(str);	
+	}
+
+	function isNormalIntegerDigits(str) {	
+		var n = true;
+		for (var i = 0, len = str.length; i < len; i++) {
+			n = n && isNormalInteger(str[i]);
+		}
+		return n;
+	}
+
+	function isNormalInteger(str) {
+		return /^\+?(0|[1-9]\d*)$/.test(str);
+	}
+
 	function submitData(){		
 		$('#RegistrationForm').data('formValidation').validate();
 		var isValid = $('#RegistrationForm').data('formValidation').isValid();
@@ -644,11 +676,9 @@
 		isValid = AddressValidation();
 		if(!isValid) return;
 		var NoNumbersAddress = $('#NoNumbersAddress').prop('checked') ? 1: 0;
-		var CustomAddress = $('#CustomAddress').prop('checked') ? 1: 0;
-		
-		$.post('u2.php', {StreetName: myAddress.StreetName, StreetNumber: myAddress.StreetNumber, CustomAddress: CustomAddress, 
-						  Municipality: myAddress.Municipality, Division: myAddress.Division, Country: myAddress.Country, Zip: myAddress.Zip, 
-						  Locality: myAddress.Locality, NoNumbersAddress: NoNumbersAddress, FixedPhone: $('#FixedPhone').val()}, function(data){
+		$.post('u2.php', {StreetName: myAddress.StreetName, StreetNumber: myAddress.StreetNumber, Municipality: myAddress.Municipality, 
+						  Division: myAddress.Division, Country: myAddress.Country, Zip: myAddress.Zip, Area: myAddress.Area, 
+						  NoNumbersAddress: NoNumbersAddress, FixedPhone: $('#FixedPhone').val()}, function(data){
 			if(data.Error == 0){
 				location.replace("p3.php?SID=" + data.SID);	
 			}else{
@@ -662,71 +692,6 @@
 		location.replace("p1.php");
 	}
 
-	$(document).ready(function() {
-		$('#Email').focus();
-		$('#NoNumbersAddress').prop('checked', false);
-		$("#CustomAddress").prop('checked', false);
-		
-
-		
-		
-		$('#ErrorMsgAddress').hide();
-	    $('#RegistrationForm')
-	     	.on('init.field.fv', function(e, data) {
-	            var $parent = data.element.parents('.form-group'),
-	                $icon   = $parent.find('.form-control-feedback[data-fv-icon-for="' + data.field + '"]');
-	            $icon.on('click.clearing', function() {
-	                if ($icon.hasClass('glyphicon-remove')) {
-	                	var reset = data.field != "HomePlace";
-	                    data.fv.resetField(data.element, reset);
-	                }
-	            });
-	        })    
-		    .formValidation({
-		        framework: 'bootstrap',
-		        icon: {
-		            valid: 'glyphicon glyphicon-ok',
-		            invalid: 'glyphicon glyphicon-remove',
-		            validating: 'glyphicon glyphicon-refresh'
-		        },
-		        fields: {
-		            Mobile: {
-		                validators: {
-		                	callback: {
-		                        message: 'Παρακαλούμε εισάγετε έγκυρο κινητό τηλέφωνο!',
-		                        callback: function(value, validator, $field) {
-		                        	return MobileValidator(value);
-		                        }
-		                    },
-		                    notEmpty: {
-		                        message: 'Το πεδίο κινητό τηλέφωνο είναι υποχρεωτικό!'
-		                    }
-		                }
-		            },
-		        	FixedPhone: {
-		                validators: {
-		                	callback: {
-		                        message: 'Παρακαλούμε εισάγετε έγκυρο σταθερό τηλέφωνο!',
-		                        callback: function(value, validator, $field) {
-		                        	return FixedPhoneValidator(value);
-		                        }
-		                    }
-		                }
-		            },
-					Email: {
-						validators: {
-							emailAddress: {
-								message: 'Παρακαλούμε εισάγετε έγκυρο Email!'
-							},
-		                    notEmpty: {
-		                        message: 'Το πεδίο Email είναι υποχρεωτικό!'
-		                    }
-						}
-					}
-		        }
-		    });
-	});
-
 	function FixedPhoneValidator(FixedPhone){
 		if(FixedPhone=='') return true;
 		var s = FixedPhone.length;
@@ -736,11 +701,15 @@
 
 	function MobileValidator(Mobile){
 		if(Mobile=='') return true;
-		var s = Mobile.length;
-		var b = Mobile.substr(0, 2);
-		return ((s==10) && (b=='69')); 	
+		if($('#CCMobile').val()=='GR'){
+			var s = Mobile.length;
+			var b = Mobile.substr(0, 2);
+			return ((s==10) && (b=='69'));
+		}else{
+			var s = Mobile.length;
+			return (s>4);
+		}
 	}
-
 
 	function str_replace (search, replace, subject, countObj) { 
 	  var i = 0
@@ -787,6 +756,57 @@
 	  }
 	  return sa ? s : s[0]
 	}
+
+	function ArrayCharactersReplace (search, replace, subject, countObj) { 
+	  var i = 0
+	  var j = 0
+	  var temp = ''
+	  var repl = ''
+	  var sl = 0
+	  var fl = 0
+	  var f = [].concat(search)
+	  var r = [].concat(replace)
+	  var s = subject
+	  var ra = Object.prototype.toString.call(r) === '[object Array]'
+	  var sa = Object.prototype.toString.call(s) === '[object Array]'
+	  s = [].concat(s)
+	  var $global = (typeof window !== 'undefined' ? window : global)
+	  $global.$locutus = $global.$locutus || {}
+	  var $locutus = $global.$locutus
+	  $locutus.php = $locutus.php || {}
+	  if (typeof (search) === 'object' && typeof (replace) === 'string') {
+	    temp = replace
+	    replace = []
+	    for (i = 0; i < search.length; i += 1) {
+	      replace[i] = temp
+	    }
+	    temp = ''
+	    r = [].concat(replace)
+	    ra = Object.prototype.toString.call(r) === '[object Array]'
+	  }
+	  if (typeof countObj !== 'undefined') {
+	    countObj.value = 0
+	  }
+	  for (i = 0, sl = s.length; i < sl; i++) {
+	    if (s[i] === '') {
+	      continue
+	    }
+	    for (j = 0, fl = f.length; j < fl; j++) {
+	      temp = s[i] + ''
+	      repl = ra ? (r[j] !== undefined ? r[j] : '') : r[0]
+	      s[i] = (temp).split(f[j]).join(repl)
+	      if (typeof countObj !== 'undefined') {
+	        countObj.value += ((temp.split(f[j])).length - 1)
+	      }
+	    }
+	  }
+	  return sa ? s : s[0]
+	}
+	
+
+
+
+
 
 </script>	
 
