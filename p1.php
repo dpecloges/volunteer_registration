@@ -172,15 +172,13 @@
 		var isValid = $('#RegistrationForm').data('formValidation').isValid();	
 		if(!isValid) return;
 		$("body").css({"cursor":"progress"});
-
 		$("#FName").attr("disabled", true); 
 		$("#LName").attr("disabled", true); 
 		$("#PName").attr("disabled", true); 
 		$("#MName").attr("disabled", true); 
 		$("#BirthYear").attr("disabled", true);
-		$("#BtnFind").attr("disabled", true);		
-
-		$('#EidEklArithmHtml').html('Παρακαλώ περιμένετε');
+		$("#BtnFind").attr("disabled", true);
+		$('#EidEklArithmHtml').html('Παρακαλώ περιμένετε...');
 		$.post('eideklarithm.php', {FName: $("#FName").val(), LName: $("#LName").val(), 
 								    PName: $("#PName").val(), MName: $("#MName").val(), 
 								    BirthYear: $("#BirthYear").val()}, function(data){
@@ -204,6 +202,7 @@
 					$('#EidEklArithm').val('');
 				}else{
 					$("#ErrorMsg").html(data.ErrorDescr);
+					$('#EidEklArithmHtml').html('');
 					$('#ErrModal').modal('show');
 				}
 			}
@@ -213,7 +212,7 @@
 	$(document).ready(function() {			
 		$("#BtnNext").attr("disabled", true);
 		InitializeTextInputEvents();	
-		$("#FName").focus();
+		$("#LName").focus();
 	    $('#RegistrationForm')
 	     	.on('init.field.fv', function(e, data) {
 	            var $parent = data.element.parents('.form-group'),
