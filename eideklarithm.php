@@ -5,7 +5,7 @@ header('Cache-Control: no-cache, must-revalidate');
 require("lib/lib.php");
 
 /*
-if($_SERVER['HTTP_REFERER']!='http://dpekloges.gr/apps/vreg/p1.php'){
+if($_SERVER['HTTP_REFERER']!='https://dpekloges.gr/apps/vreg/p1.php'){
 	$data['Error'] = 100;
 	$data['ErrorDescr'] = '<h2>System Error!</h2>';
 	die(json_encode($data));
@@ -26,7 +26,7 @@ $BirthYear = $_POST['BirthYear'];
 if(mb_strlen($FName, 'utf-8') < 2){
 	$errcode = 101;
 	$errdescr = 'Δεν έχετε συμπληρώσει το όνομα σας!';
-}elseif(mb_strlen($LName, 'utf-8') < 4){
+}elseif(mb_strlen($LName, 'utf-8') < 2){
 	$errcode = 102;
 	$errdescr = 'Δεν έχετε συμπληρώσει το επώνυμο σας!';
 }elseif(mb_strlen($PName, 'utf-8') < 2){

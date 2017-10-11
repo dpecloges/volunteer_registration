@@ -2,11 +2,11 @@
 	header('Cache-Control: no-cache, must-revalidate');
 	require("lib/lib.php");
 	
-	
-	if(SERVER['HTTP_REFERER']!='http://dpekloges.gr/site/ethelontes/'){
+	/*
+	if(SERVER['HTTP_REFERER']!='https://dpekloges.gr/ethelontes/'){
 		//die('<h2>System Error!</h2>');
 	}
-		
+	*/
 	session_start();
 	session_destroy();
 ?>
@@ -161,10 +161,11 @@
 		$("#FName").attr("disabled", false); 
 		$("#LName").attr("disabled", false); 
 		$("#PName").attr("disabled", false); 
+		$("#MName").attr("disabled", false); 
 		$("#BirthYear").attr("disabled", false); 
 		$("#BtnFind").attr("disabled", false); 		
 		$("#BtnNext").attr("disabled", true);
-		$("#FName").focus();		
+		$("#LName").focus();		
 	}
 
 	function FindEidEklArithm(){
@@ -211,8 +212,7 @@
 
 	$(document).ready(function() {			
 		$("#BtnNext").attr("disabled", true);
-		InitializeTextInputEvents();	
-		$("#LName").focus();
+		InitializeTextInputEvents();
 	    $('#RegistrationForm')
 	     	.on('init.field.fv', function(e, data) {
 	            var $parent = data.element.parents('.form-group'),
