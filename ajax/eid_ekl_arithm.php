@@ -2,7 +2,7 @@
 
 header('Content-type: application/json');
 header('Cache-Control: no-cache, must-revalidate');
-require("lib/lib.php");
+require("../lib/lib.php");
 
 /*
 if($_SERVER['HTTP_REFERER']!='https://dpekloges.gr/apps/vreg/p1.php'){
@@ -15,33 +15,33 @@ $errcode = 0;
 $errdescr = '';
 
 
-$FName = trim($_POST['FName']);
-$LName = trim($_POST['LName']);
-$PName = trim($_POST['PName']);
-$MName = trim($_POST['MName']);
-$BirthYear = $_POST['BirthYear'];
+$FirstName 	 = trim($_POST['FirstName']);
+$LastName 	 = trim($_POST['LastName']);
+$FathersName = trim($_POST['FathersName']);
+$MothersName = trim($_POST['MothersName']);
+$BirthYear 	 = intval($_POST['BirthYear']);
 
 
 
-if(mb_strlen($FName, 'utf-8') < 2){
+if(mb_strlen($LastName, 'utf-8') < 2){
 	$errcode = 101;
-	$errdescr = 'Δεν έχετε συμπληρώσει το όνομα σας!';
-}elseif(mb_strlen($LName, 'utf-8') < 2){
-	$errcode = 102;
 	$errdescr = 'Δεν έχετε συμπληρώσει το επώνυμο σας!';
-}elseif(mb_strlen($PName, 'utf-8') < 2){
+}elseif(mb_strlen($FirstName, 'utf-8') < 2){
+	$errcode = 102;
+	$errdescr = 'Δεν έχετε συμπληρώσει το όνομα σας!';
+}elseif(mb_strlen($FathersName, 'utf-8') < 2){
 	$errcode = 103;
 	$errdescr = 'Δεν έχετε συμπληρώσει το πατρώνυμο σας!';
-}elseif(mb_strlen($MName, 'utf-8') < 2){
+}elseif(mb_strlen($MothersName, 'utf-8') < 2){
 	$errcode = 104;
 	$errdescr = 'Δεν έχετε συμπληρώσει το μητρώνυμο σας!';
-}elseif(findInvalidChars($FName)){
+}elseif(findInvalidChars($FirstName)){
 	$errcode = 105;
 	$errdescr = 'Το όνομα σας περιέχει λατινικούς ή ειδικούς χαρακτήρες!';
-}elseif(findInvalidChars($LName)){
+}elseif(findInvalidChars($LastName)){
 	$errcode = 106;
 	$errdescr = 'Το επώνυμο σας περιέχει λατινικούς ή ειδικούς χαρακτήρες!';
-}elseif(findInvalidChars($PName)){
+}elseif(findInvalidChars($FathersName)){
 	$errcode = 107;
 	$errdescr = 'Το πατρώνυμο σας περιέχει λατινικούς ή ειδικούς χαρακτήρες!';
 }elseif(empty($BirthYear)){
@@ -56,9 +56,7 @@ if($errcode!=0){
 }
 	
 
-$YPESdata = getEidEklArDataFromDB($FName, $LName, $PName, $MName, $BirthYear);
-
-
+$YPESdata = getEidEklArDataFromDB($FirstName, $LastName, $FathersName, $MothersName, $BirthYear);
 
 
 
@@ -76,10 +74,10 @@ if(EidEklArExist($YPESdata['Eid_ekl_ar'])){
 }
 
 $EidEklAr = $YPESdata['Eid_ekl_ar'];
-$FName = $YPESdata['Onoma'];
-$LName = $YPESdata['Eponymo']; 
-$PName = $YPESdata['on_pat'];
-$MName = $YPESdata['on_mht'];
+$FirstName = $YPESdata['Onoma'];
+$LastName = $YPESdata['Eponymo']; 
+$FathersName = $YPESdata['on_pat'];
+$MothersName = $YPESdata['on_mht'];
 
 $dhmot = $YPESdata['dhmot']; 
 $Dimos = $YPESdata['Dimos']; 
@@ -89,14 +87,6 @@ $Perif = $YPESdata['PERIFER'];
 $Eklog = $YPESdata['EKL_PERIF']; 
 $PerEn = $YPESdata['per_enotita']; 
 
-
-session_start();
-$_SESSION['FName'] = $FName;
-$_SESSION['LName'] = $LName;
-$_SESSION['PName'] = $PName;
-$_SESSION['MName'] = $MName;
-$_SESSION['BirthYear'] = $BirthYear;
-$_SESSION['EidEklAr'] = $EidEklAr;
 
 
 $html = "
@@ -115,11 +105,11 @@ $html = "
 	<div class='row'>&nbsp;</div>
 	<div class='row'>
 		<div class='col-sm-4'>Όνομα Πατέρα  : </div>
-		<div class='col-sm-8'><b>$PName</b></div>
+		<div class='col-sm-8'><b>$FathersName</b></div>
 	</div>
 	<div class='row'>
 		<div class='col-sm-4'>Όνομα Μητέρας  : </div>
-		<div class='col-sm-8'><b>$MName</b></div>
+		<div class='col-sm-8'><b>$MothersName</b></div>
 	</div>
 	<div class='row'>&nbsp;</div>
 
@@ -157,13 +147,12 @@ $html = "
 
 ";
 
-
-
 $data['html'] = $html;
 $data['EidEklAr'] = $EidEklAr;
-$data['FName'] = $FName;
-$data['PName'] = $PName;
-$data['MName'] = $MName;
+$data['FirstName'] = $FirstName;
+$data['LastName'] = $LastName;
+$data['FathersName'] = $FathersName;
+$data['MothersName'] = $MothersName;
 $data['Error'] = $errcode;
 $data['ErrorDescr'] = $errdescr;
 echo json_encode($data);
@@ -181,7 +170,7 @@ function findInvalidChars($str){
 
 function EidEklArExist($EidEklArithm){		
 	$con = openDB();
-	$sql = "SELECT ID FROM vreg_volunteers WHERE EidEklAr = '$EidEklArithm'";
+	$sql = "SELECT ID FROM vreg2_volunteers WHERE EidEklAr = '$EidEklArithm'";
 	$result = mysqli_query($con, $sql);
 	$num_rows = mysqli_num_rows($result);
 	$r = ($num_rows > 0);

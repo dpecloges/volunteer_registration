@@ -61,6 +61,5 @@
 	$(document).ready(function() {
 		$("#focus").focus();
 		$("#focus").hide();
-		
 	});
 </script>

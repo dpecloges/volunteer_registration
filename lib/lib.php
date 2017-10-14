@@ -3,6 +3,31 @@ require_once("config.php");
 require_once("mailer/class.phpmailer.php");
 require_once('mandrill-api-php/src/Mandrill.php');
 
+$J = new html_objects_array;
+
+class html_objects_array{
+	private $formsarray = array();
+    public function add($name){
+		$this->formsarray[$name] = uniqid();
+		return $this->formsarray[$name];
+	}
+    public function getID($name){
+		return $this->formsarray[$name];
+	}
+}
+
+function JQadd($Html_Objects, $Name){
+	echo $Html_Objects->add($Name);
+}
+
+function JQget($Html_Objects, $Name){
+	echo "#" . $Html_Objects->getID($Name);
+}
+
+function JQread($Html_Objects, $Name){
+	echo $Html_Objects->getID($Name);
+}
+
 
 function CheckAFM($afm){
 	if($afm=='000000000') return false;	
@@ -111,8 +136,8 @@ function sendMail($email, $fullname, $subject, $body){
 			'html' => $body,
 			'text' => 'Δεν υποστηρίζεται!',
 			'subject' => $subject,
-			'from_email' => My_Platform_Email2,
-			'from_name'  => My_Platform_Email_Name,
+			'from_email' => My_Platform_Email,
+			'from_name' => My_Platform_Email_Name,
 			'to' => array(
 				array(
 					'email' => $email,
@@ -146,23 +171,14 @@ function sendMail($email, $fullname, $subject, $body){
 
 
 function sendMailLocal($email, $fullname, $subject, $body){
-	$mail = new PHPMailer(); // create a new object
-	$mail->IsSMTP(); // enable SMTP
-	$mail->SMTPDebug = 1; // debugging: 1 = errors and messages, 2 = messages only
-	$mail->SMTPAuth = true; // authentication enabled
-	$mail->SMTPSecure = 'ssl'; // secure transfer enabled REQUIRED for Gmail
-	$mail->Host = "smtp.gmail.com";
-	$mail->Port = 465; // or 587
-	$mail->IsHTML(true);
-	$mail->Username = My_Admin_Email;
-	$mail->Password = My_Google_Password;		
+	$mail             = new PHPMailer();
 	$mail->CharSet = "UTF-8";
-	$mail->From       = My_Platform_Email;
-	$mail->FromName   = My_Platform_Email_Name;
+	$mail->From       = ToPotami_Platform_Email;
+	$mail->FromName   = "Το Ποτάμι";
 	$mail->Subject    = $subject;
 	$mail->AltBody    = "Δεν υποστηρίζεται!";
 	$mail->MsgHTML($body);
-	$mail->AddReplyTo(My_Admin_Email, My_Platform_Email_Name);
+	$mail->AddReplyTo(ToPotami_Admin_Email, "Το Ποτάμι");
 	$mail->AddAddress($email, $fullname);
 	$mail->IsHTML(true);
 	if(!$mail->Send()){
